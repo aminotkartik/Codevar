@@ -1,9 +1,8 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { useRouter, Link } from '../app/router'
 import { useRE } from '../context/REContext'
-import { RevivalDialog } from '../components/revival/RevivalDialog'
-import { StewardshipDialog } from '../components/revival/StewardshipDialog'
-import { BookmarkButton } from '../components/projects/BookmarkButton'
+import { DraggableDataCard } from '../components/canvas/DraggableDataCard'
+import { archiveLabel, projectItem } from '../dnd/items'
 import { ProjectCover } from '../components/projects/ProjectCover'
 import { HandoffChecklist } from '../components/projects/HandoffChecklist'
 import { ProjectFieldNotes } from '../components/projects/ProjectFieldNotes'
@@ -40,8 +39,7 @@ const ASSET_ICONS = {
 
 export function ProjectPage({ slug }) {
   const { navigate } = useRouter()
-  const { projects, projectsBySlug } = useRE()
-  const [dialog, setDialog] = useState(null) // 'revival' | 'stewardship'
+  const { projectsBySlug, isSaved } = useRE()
 
   const project = useMemo(() => projectsBySlug.get(slug), [projectsBySlug, slug])
 
@@ -74,6 +72,7 @@ export function ProjectPage({ slug }) {
 
   const available = availabilityOf(project)
   const handoff = handoffFraction(project)
+  const saved = isSaved(project.id)
 
   return (
     <div className="route-in">
@@ -126,29 +125,29 @@ export function ProjectPage({ slug }) {
             </div>
           </dl>
 
-          <div className="detail-head__actions">
-            <button
-              type="button"
-              className="btn btn--primary btn--lg"
-              onClick={() => setDialog('revival')}
+          <div className="detail-head__actions detail-head__actions--canvas">
+            <p className="detail-drag-note">
+              <span className="mono">The canvas protocol</span>
+              Drag this project into an Action Zone to save it, offer help, or propose
+              stewardship. There is no save button — the drop is the action.
+            </p>
+            <DraggableDataCard
+              dragId={`detail-${project.id}`}
+              item={projectItem(project)}
+              className="detail-specimen"
+              gripLabel={`Drag ${project.title} into an action zone`}
             >
-              Offer to contribute
-              <ArrowUpRight width={16} height={16} />
-            </button>
-            <button
-              type="button"
-              className="btn btn--lg"
-              onClick={() => setDialog('stewardship')}
-              disabled={!project.openToStewardship && !available.includes('stewardship')}
-              title={
-                project.openToStewardship
-                  ? 'Propose leading the next chapter'
-                  : 'This project is not open to stewardship'
-              }
-            >
-              Request stewardship
-            </button>
-            <BookmarkButton projectId={project.id} projectTitle={project.title} />
+              <div className="detail-specimen__body">
+                <span className="detail-specimen__archive">{archiveLabel(project)}</span>
+                <strong className="detail-specimen__title">{project.title}</strong>
+                <span className="detail-specimen__meta">
+                  {saved ? 'On your Revival Desk' : `${project.stage} · ${project.completion}% complete`}
+                </span>
+                <span className="detail-specimen__hint">
+                  Save · Offer help · Take stewardship
+                </span>
+              </div>
+            </DraggableDataCard>
           </div>
         </header>
 
@@ -339,28 +338,16 @@ export function ProjectPage({ slug }) {
                   </p>
                 </div>
 
-                <div style={{ display: 'grid', gap: 'var(--sp-3)' }}>
-                  <button
-                    type="button"
-                    className="btn btn--primary btn--block"
-                    onClick={() => setDialog('revival')}
-                  >
-                    Offer to contribute
-                    <ArrowUpRight width={15} height={15} />
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn--block"
-                    onClick={() => setDialog('stewardship')}
-                    disabled={!project.openToStewardship && !available.includes('stewardship')}
-                  >
-                    Request stewardship
-                  </button>
-                  <BookmarkButton
-                    projectId={project.id}
-                    projectTitle={project.title}
-                    variant="block"
-                  />
+                <div className="detail-side-note">
+                  <span className="mono">Act on this entry</span>
+                  <p>
+                    Use the project card in the header, or the one in the inspector on
+                    Explore. Drag it into a zone; this page keeps the labels read-only on
+                    purpose.
+                  </p>
+                  <span className="detail-side-note__state" data-saved={saved}>
+                    {saved ? '✓ On your Revival Desk' : 'Not on your desk yet'}
+                  </span>
                 </div>
               </div>
             </div>
@@ -448,17 +435,6 @@ export function ProjectPage({ slug }) {
           </aside>
         </div>
       </div>
-
-      <RevivalDialog
-        open={dialog === 'revival'}
-        onClose={() => setDialog(null)}
-        project={project}
-      />
-      <StewardshipDialog
-        open={dialog === 'stewardship'}
-        onClose={() => setDialog(null)}
-        project={project}
-      />
     </div>
   )
 }

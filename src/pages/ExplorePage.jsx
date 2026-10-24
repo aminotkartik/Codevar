@@ -5,18 +5,21 @@ import { SearchInput } from '../components/discovery/SearchInput'
 import { SortControl } from '../components/discovery/SortControl'
 import { FilterPanel, FilterDrawer } from '../components/discovery/FilterPanel'
 import { ActiveFilterChips } from '../components/discovery/ActiveFilterChips'
-import { ProjectCard } from '../components/projects/ProjectCard'
+import { ProjectDataCard } from '../components/canvas/ProjectDataCard'
+import { DraggableDataCard } from '../components/canvas/DraggableDataCard'
 import { EmptyState } from '../components/ui/EmptyState'
+import { ProgressBar } from '../components/ui/ProgressBar'
+import { StageBadge } from '../components/ui/StageBadge'
+import { archiveLabel, projectItem } from '../dnd/items'
+import { categoryLabel, categoryColor, AVAILABILITY_LABELS } from '../data/categories'
 import {
   applyFilters,
+  availabilityOf,
   countActiveFilters,
   normaliseQuery,
 } from '../utils/projectFilters'
-import {
-  sortProjects as sortList,
-  applyInterestBoost,
-} from '../utils/projectSorting'
-import { Filter, Search as SearchIcon } from '../components/ui/Icons'
+import { sortProjects as sortList, applyInterestBoost } from '../utils/projectSorting'
+import { Filter, Grip, Search as SearchIcon, ArrowUpRight } from '../components/ui/Icons'
 
 const FACETS = ['category', 'stage', 'help', 'availability']
 
@@ -44,10 +47,11 @@ function filtersToParams(filters) {
 
 export function ExplorePage() {
   const { pathname, params, navigate } = useRouter()
-  const { projects, prefs, localProjects } = useRE()
+  const { projects, prefs, localProjects, isSaved } = useRE()
 
   const [filters, setFilters] = useState(() => filtersFromParams(params))
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [selectedId, setSelectedId] = useState(null)
 
   // Keep local state in step with the URL (back, forward, deep link).
   useEffect(() => {
@@ -62,13 +66,18 @@ export function ExplorePage() {
   const setFacet = (facet, values) => update({ ...filters, [facet]: values })
   const toggleFacetValue = (facet, value) => {
     const current = filters[facet]
-    update({ ...filters, [facet]: current.includes(value) ? current.filter((v) => v !== value) : [...current, value] })
+    update({
+      ...filters,
+      [facet]: current.includes(value)
+        ? current.filter((v) => v !== value)
+        : [...current, value],
+    })
   }
-  const clearAll = () => update({ ...filters, category: [], stage: [], help: [], availability: [] })
+  const clearAll = () =>
+    update({ ...filters, category: [], stage: [], help: [], availability: [] })
   const clearQuery = () => update({ ...filters, q: '' })
 
   const activeCount = countActiveFilters(filters)
-
   const filtered = useMemo(() => applyFilters(projects, filters), [projects, filters])
 
   const sorted = useMemo(() => {
@@ -79,59 +88,45 @@ export function ExplorePage() {
       : ordered
   }, [filtered, filters.sort, prefs.categories])
 
-  // Projects from the user's own interests, shown above the rest when nothing is filtered.
-  const recommended = useMemo(() => {
-    if (!prefs.categories.length) return []
-    const matched = applyFilters(projects, { ...filters, category: prefs.categories })
-    return sortList(matched, 'help').slice(0, 3)
-  }, [projects, filters, prefs.categories])
-
-  const showRecommendations =
-    prefs.categories.length > 0 &&
-    !filters.q &&
-    activeCount === 0 &&
-    recommended.length > 0 &&
-    filtered.length > recommended.length
-
   const query = normaliseQuery(filters.q)
+  const selected = useMemo(
+    () => sorted.find((project) => project.id === selectedId) || sorted[0] || null,
+    [sorted, selectedId],
+  )
 
   return (
-    <div className="route-in">
-      <div className="container">
-        <header className="page-head">
-          <span className="eyebrow">The archive</span>
-          <h1 className="page-head__title">Find something worth finishing.</h1>
-          <p className="page-head__sub">
-            Browse unfinished projects, find a challenge that matches your skills, and discover
-            where you can make a difference.
-          </p>
+    <div className="route-in canvas-page">
+      <div className="container container--wide">
+        <header className="canvas-head">
+          <div className="canvas-head__text">
+            <span className="eyebrow">The archive · worktable</span>
+            <h1 className="canvas-head__title">Find something worth finishing.</h1>
+            <p className="canvas-head__sub">
+              Every card can be picked up. Inspect an entry with the link, or take the card
+              by its grip and drop it into an Action Zone to act on it.
+            </p>
+          </div>
+          <div className="canvas-head__legend" aria-label="How the worktable works">
+            <span className="canvas-head__legend-item">
+              <Grip width={13} height={13} aria-hidden="true" />
+              Drag a card
+            </span>
+            <span className="canvas-head__legend-arrow" aria-hidden="true">
+              →
+            </span>
+            <span className="canvas-head__legend-item">Drop into a zone</span>
+          </div>
         </header>
 
-        <div className="explore-layout">
-          {/* ---------------- filters ---------------- */}
-          <aside className="filter-col" aria-label="Filters">
-            <div className="panel">
-              <div className="panel__head">
-                <span className="panel__title">Filters</span>
-                <span className="panel__spacer" />
-                {activeCount > 0 && (
-                  <button type="button" className="link-arrow" onClick={clearAll}>
-                    Clear all
-                  </button>
-                )}
-              </div>
-              <FilterPanel projects={projects} filters={filters} onChange={setFacet} />
-            </div>
-          </aside>
-
-          {/* ---------------- results ---------------- */}
-          <div className="explore-main">
-            <div className="explore-toolbar">
+        <div className="canvas-layout">
+          {/* ---------------- library rail ---------------- */}
+          <aside className="canvas-rail" aria-label="Library filters and sorting">
+            <div className="canvas-rail__tools">
               <SearchInput
                 id="explore-search"
                 value={filters.q}
                 onChange={(value) => update({ ...filters, q: value })}
-                placeholder="Search projects, skills, ideas..."
+                placeholder="Search projects, skills, ideas…"
               />
               <SortControl
                 id="explore-sort"
@@ -146,11 +141,7 @@ export function ExplorePage() {
               >
                 <Filter width={16} height={16} />
                 Filters
-                {activeCount > 0 && (
-                  <span className="chip__count" style={{ color: 'var(--color-accent)' }}>
-                    {activeCount}
-                  </span>
-                )}
+                {activeCount > 0 && <span className="chip__count">{activeCount}</span>}
               </button>
             </div>
 
@@ -160,44 +151,57 @@ export function ExplorePage() {
               onClearAll={clearAll}
             />
 
-            <p className="result-meta" aria-live="polite">
-              <b>{filtered.length}</b> of {projects.length} projects
+            <div className="canvas-rail__panel">
+              <div className="canvas-rail__head">
+                <span className="mono">Filters</span>
+                {activeCount > 0 && (
+                  <button type="button" className="link-arrow" onClick={clearAll}>
+                    Clear all
+                  </button>
+                )}
+              </div>
+              <FilterPanel projects={projects} filters={filters} onChange={setFacet} />
+            </div>
+
+            <p className="result-meta result-meta--rail" aria-live="polite">
+              <b>{filtered.length}</b> of {projects.length} entries
               {query ? (
                 <>
                   {' '}
                   for <b>&ldquo;{filters.q}&rdquo;</b>
                 </>
               ) : null}
-              {localProjects.length > 0 && (
-                <>
-                  {' '}
-                  · <b>{localProjects.length}</b> submitted by you
-                </>
-              )}
             </p>
-
-            {/* ---------------- recommendations ---------------- */}
-            {showRecommendations && (
-              <section style={{ marginBottom: 'var(--sp-7)' }}>
-                <div className="section-rule">
-                  <span className="mono">Matched for you</span>
-                </div>
-                <h2 className="section-heading__title" style={{ fontSize: 'var(--fs-h3)' }}>
-                  From the areas you picked
-                </h2>
-                <div className="cards-grid" style={{ marginTop: 'var(--sp-4)' }}>
-                  {recommended.map((project) => (
-                    <ProjectCard key={project.id} project={project} />
-                  ))}
-                </div>
-              </section>
+            {localProjects.length > 0 && (
+              <p className="canvas-rail__note">
+                {localProjects.length} published by you · in this browser only
+              </p>
             )}
+          </aside>
 
-            {/* ---------------- results or empty state ---------------- */}
+          {/* ---------------- worktable ---------------- */}
+          <section className="canvas-worktable" aria-label="Projects on the worktable">
+            <div className="worktable-head">
+              <span className="mono">
+                Worktable / {sorted.length} {sorted.length === 1 ? 'entry' : 'entries'}
+              </span>
+              <span className="worktable-head__hint">
+                Drag to act
+                {selected ? ` · inspecting ${archiveLabel(selected)}` : ''}
+              </span>
+            </div>
+
             {sorted.length > 0 ? (
-              <div className="cards-grid">
+              <div className="worktable-grid">
                 {sorted.map((project) => (
-                  <ProjectCard key={project.id} project={project} />
+                  <ProjectDataCard
+                    key={project.id}
+                    project={project}
+                    dragId={`archive-${project.id}`}
+                    selected={selected?.id === project.id}
+                    onInspect={() => setSelectedId(project.id)}
+                    showCover={false}
+                  />
                 ))}
               </div>
             ) : (
@@ -220,7 +224,7 @@ export function ExplorePage() {
                       <button
                         type="button"
                         className="btn btn--primary"
-                        onClick={() => clearQueryAndFilters()}
+                        onClick={clearQueryAndFilters}
                       >
                         Clear search and filters
                       </button>
@@ -233,11 +237,31 @@ export function ExplorePage() {
               />
             )}
 
-            <p className="step-foot__note" style={{ marginTop: 'var(--sp-6)' }}>
-              <SearchIcon width={13} height={13} style={{ verticalAlign: '-2px', marginRight: 6 }} />
-              Search covers titles, descriptions, categories, technologies, skills and open tasks.
+            <p className="step-foot__note worktable-foot">
+              <SearchIcon
+                width={13}
+                height={13}
+                style={{ verticalAlign: '-2px', marginRight: 6 }}
+              />
+              Search covers titles, descriptions, categories, technologies, skills and open
+              tasks. Filters change what is on the table; they never change your desk.
             </p>
-          </div>
+          </section>
+
+          {/* ---------------- inspector ---------------- */}
+          <aside className="canvas-inspector" aria-label="Inspector">
+            {selected ? (
+              <Inspector project={selected} saved={isSaved(selected.id)} />
+            ) : (
+              <div className="inspector-empty">
+                <span className="mono">Inspector</span>
+                <p>
+                  Nothing is selected. Hover or focus a card to inspect it here, or use the
+                  link on any card to open its full entry.
+                </p>
+              </div>
+            )}
+          </aside>
         </div>
       </div>
 
@@ -254,4 +278,93 @@ export function ExplorePage() {
   function clearQueryAndFilters() {
     update({ q: '', category: [], stage: [], help: [], availability: [], sort: 'curated' })
   }
+}
+
+/* --------------------------------------------------------------------------
+   Inspector — the contextual read-out for the card currently under attention.
+   It carries its own draggable specimen, so a project can be acted on from
+   here without leaving the worktable.
+   -------------------------------------------------------------------------- */
+function Inspector({ project, saved }) {
+  const available = availabilityOf(project)
+
+  return (
+    <div className="inspector">
+      <div className="inspector__head">
+        <span className="mono">Inspector</span>
+        <span className="inspector__archive">{archiveLabel(project)}</span>
+      </div>
+
+      <div className="inspector__id-row">
+        <span
+          className="inspector__category"
+          style={{ '--cat-color': categoryColor(project.category) }}
+        >
+          {categoryLabel(project.category)}
+        </span>
+        <StageBadge stage={project.stage} />
+      </div>
+
+      <h2 className="inspector__title">
+        <Link to={`/projects/${project.slug}`}>{project.title}</Link>
+      </h2>
+
+      <p className="inspector__summary">{project.summary}</p>
+
+      <div className="inspector__progress">
+        <ProgressBar
+          value={project.completion}
+          showValue
+          tone="accent"
+          label={`${project.completion} per cent complete`}
+        />
+        <span className="inspector__progress-note">How far the work has come</span>
+      </div>
+
+      <dl className="inspector__rows">
+        <div>
+          <dt>Needs</dt>
+          <dd>{project.helpFocus}</dd>
+        </div>
+        <div>
+          <dt>Skills wanted</dt>
+          <dd>{project.skillsNeeded.slice(0, 3).join(' · ') || 'Not specified'}</dd>
+        </div>
+        <div>
+          <dt>Next step</dt>
+          <dd>{project.nextSteps[0]}</dd>
+        </div>
+        <div>
+          <dt>Availability</dt>
+          <dd>{available.map((a) => AVAILABILITY_LABELS[a]).join(' · ') || 'Not open'}</dd>
+        </div>
+      </dl>
+
+      <div className="inspector__grab">
+        <span className="mono">Take this card</span>
+        <DraggableDataCard
+          dragId={`inspector-${project.id}`}
+          item={projectItem(project)}
+          className="inspector__specimen"
+          gripLabel={`Drag ${project.title} from the inspector into an action zone`}
+        >
+          <div className="inspector__specimen-body">
+            <span className="inspector__specimen-archive">{archiveLabel(project)}</span>
+            <strong className="inspector__specimen-title">{project.title}</strong>
+            <span className="inspector__specimen-meta">
+              {saved ? 'On your desk — drag to remove it there' : project.stage}
+            </span>
+          </div>
+        </DraggableDataCard>
+        <p className="inspector__hint">
+          Drag this card into <b>Save to Revival Desk</b>, <b>Offer to help</b> or{' '}
+          <b>Take stewardship</b>. The zones are in the dock at the bottom of the screen.
+        </p>
+        <Link to={`/projects/${project.slug}`} className="link-arrow inspector__open">
+          Open the full entry
+          <ArrowUpRight width={13} height={13} />
+        </Link>
+      </div>
+    </div>
+  )
 }

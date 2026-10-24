@@ -7,6 +7,7 @@ import {
 } from '../../data/categories'
 import { applyFilters, countByFacet } from '../../utils/projectFilters'
 import { Close } from '../ui/Icons'
+import { Portal } from '../ui/Portal'
 
 const FACETS = ['category', 'stage', 'help', 'availability']
 
@@ -118,6 +119,7 @@ export function FilterDrawer({ open, onClose, projects, filters, onChange }) {
   if (!open) return null
 
   return (
+    <Portal>
     <div className="filter-drawer">
       <div
         role="presentation"
@@ -161,5 +163,6 @@ export function FilterDrawer({ open, onClose, projects, filters, onChange }) {
         </div>
       </div>
     </div>
+    </Portal>
   )
 }

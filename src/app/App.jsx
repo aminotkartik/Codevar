@@ -1,11 +1,14 @@
 import { useState } from 'react'
 import { RouterProvider, useRouter, matchRoute } from './router'
 import { REProvider, useRE } from '../context/REContext'
+import { CanvasDndProvider } from '../dnd/CanvasDnd'
 import { Header } from '../components/layout/Header'
 import { MobileNav } from '../components/layout/MobileNav'
 import { Footer } from '../components/layout/Footer'
 import { ToastViewport } from '../components/ui/Toast'
-import { OnboardingDialog } from '../pages/OnboardingDialog'
+import { ActionZoneDock } from '../components/canvas/ActionZoneDock'
+import { CanvasPanels } from '../components/canvas/CanvasPanels'
+import { CanvasOnboarding } from '../components/canvas/CanvasOnboarding'
 import { HomePage } from '../pages/HomePage'
 import { ExplorePage } from '../pages/ExplorePage'
 import { ProjectPage } from '../pages/ProjectPage'
@@ -35,6 +38,7 @@ function CurrentRoute() {
 
 function Shell() {
   const { pathname } = useRouter()
+  const { liveMessage } = useRE()
   const [navOpen, setNavOpen] = useState(false)
 
   return (
@@ -50,18 +54,23 @@ function Shell() {
       </main>
       <Footer />
       <ToastViewport />
+      <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+        {liveMessage ? <span key={liveMessage.id}>{liveMessage.text}</span> : null}
+      </div>
     </div>
   )
 }
 
 function App() {
-  const { prefs } = useRE()
-
   return (
     <RouterProvider>
-      <Shell />
-      {/* shown once, never blocking, and never again until reset */}
-      {!prefs.onboarded && <OnboardingDialog />}
+      {/* One shared drag context and one source of truth for every screen. */}
+      <CanvasDndProvider>
+        <Shell />
+        <ActionZoneDock />
+        <CanvasPanels />
+        <CanvasOnboarding />
+      </CanvasDndProvider>
     </RouterProvider>
   )
 }

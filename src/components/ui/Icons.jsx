@@ -283,3 +283,39 @@ export function Spade(props) {
     </svg>
   )
 }
+
+/** Six-dot drag grip — the universal "pick this up" affordance. */
+export function Grip(props) {
+  return (
+    <svg {...base} {...props}>
+      <circle cx="9" cy="7" r="1.15" fill="currentColor" stroke="none" />
+      <circle cx="15" cy="7" r="1.15" fill="currentColor" stroke="none" />
+      <circle cx="9" cy="12" r="1.15" fill="currentColor" stroke="none" />
+      <circle cx="15" cy="12" r="1.15" fill="currentColor" stroke="none" />
+      <circle cx="9" cy="17" r="1.15" fill="currentColor" stroke="none" />
+      <circle cx="15" cy="17" r="1.15" fill="currentColor" stroke="none" />
+    </svg>
+  )
+}
+
+/** A tray / action zone target. */
+export function Zone(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M3.5 13.5 6 5.5h12l2.5 8v5h-17z" />
+      <path d="M3.5 13.5h4.2l1.1 2.2h6.4l1.1-2.2h4.2" />
+    </svg>
+  )
+}
+
+/** A hand receiving / passing something on. */
+export function HandoffArrow(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M3 8h10" />
+      <path d="m9.5 4.5 3.5 3.5-3.5 3.5" />
+      <path d="M3 16h7.5" />
+      <path d="M17 6.5v11" />
+    </svg>
+  )
+}
