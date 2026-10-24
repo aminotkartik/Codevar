@@ -219,7 +219,7 @@ body[data-dragging] {
   background: var(--paper-warm);
   color: var(--paper-sepia);
   font-family: var(--font-mono);
-  font-size: 0.5625rem;
+  font-size: 0.625rem;
   letter-spacing: var(--tracking-stamp);
   text-transform: uppercase;
   cursor: grab;
@@ -325,7 +325,7 @@ body[data-dragging] {
   border-top: 1px dashed var(--paper-rule);
   color: var(--color-accent);
   text-transform: uppercase;
-  letter-spacing: 0.09em;
+  letter-spacing: 0.1em;
 }
 
 /* ==========================================================================
@@ -471,7 +471,7 @@ body[data-dragging] {
 
 .action-zone--chip .action-zone__label {
   font-family: var(--font-mono);
-  font-size: 0.5625rem;
+  font-size: 0.625rem;
   font-weight: 500;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -547,7 +547,7 @@ body[data-dragging] {
   align-items: center;
   gap: 6px;
   font-family: var(--font-mono);
-  font-size: 0.5625rem;
+  font-size: 0.625rem;
   letter-spacing: var(--tracking-stamp);
   text-transform: uppercase;
   color: var(--color-accent);
@@ -572,7 +572,7 @@ body[data-dragging] {
   background: var(--paper-ivory);
   color: var(--text-muted);
   font-family: var(--font-mono);
-  font-size: 0.5625rem;
+  font-size: 0.625rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   white-space: nowrap;
@@ -645,7 +645,7 @@ body[data-dragging] {
 
 .action-dock__status-label small {
   font-family: var(--font-sans);
-  font-size: 0.5625rem;
+  font-size: 0.625rem;
   letter-spacing: 0;
   text-transform: none;
   color: var(--text-muted);
@@ -739,7 +739,7 @@ body[data-dragging] {
   background: var(--paper-ivory);
   box-shadow: var(--shadow-paper-1);
   font-family: var(--font-mono);
-  font-size: 0.5625rem;
+  font-size: 0.625rem;
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
   color: var(--paper-sepia);
@@ -821,7 +821,7 @@ body[data-dragging] {
   margin-bottom: var(--sp-3);
   border-bottom: 1px solid var(--color-line);
   font-family: var(--font-mono);
-  font-size: 0.5625rem;
+  font-size: 0.625rem;
   letter-spacing: var(--tracking-stamp);
   text-transform: uppercase;
   color: var(--paper-sepia);
@@ -858,7 +858,7 @@ body[data-dragging] {
   margin-bottom: var(--sp-4);
   border-bottom: 1px solid var(--color-line);
   font-family: var(--font-mono);
-  font-size: 0.5625rem;
+  font-size: 0.625rem;
   letter-spacing: var(--tracking-stamp);
   text-transform: uppercase;
   color: var(--paper-sepia);
@@ -932,7 +932,7 @@ body[data-dragging] {
   background: var(--color-accent-soft);
   color: var(--color-accent);
   font-family: var(--font-mono);
-  font-size: 0.5625rem;
+  font-size: 0.625rem;
   letter-spacing: 0.04em;
 }
 
@@ -1031,7 +1031,7 @@ body[data-dragging] {
 .project-data-card__stage {
   font-family: var(--font-mono);
   font-size: 0.5rem;
-  letter-spacing: 0.09em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   white-space: nowrap;
   color: var(--paper-sepia);
@@ -1074,7 +1074,7 @@ body[data-dragging] {
 }
 
 .project-data-card__sortkey {
-  font-size: 0.5625rem;
+  font-size: 0.625rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--paper-sepia);
@@ -1095,7 +1095,7 @@ body[data-dragging] {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  font-size: 0.5625rem;
+  font-size: 0.625rem;
   font-family: var(--font-mono);
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -1148,7 +1148,7 @@ body[data-dragging] {
   padding-bottom: var(--sp-2);
   border-bottom: 1px solid var(--paper-rule);
   font-family: var(--font-mono);
-  font-size: 0.5625rem;
+  font-size: 0.625rem;
   letter-spacing: var(--tracking-stamp);
   text-transform: uppercase;
   color: var(--paper-sepia);
@@ -1356,7 +1356,7 @@ body[data-dragging] {
 }
 
 .inspector__open {
-  font-size: 0.5625rem;
+  font-size: 0.625rem;
 }
 
 .inspector-empty {
@@ -1369,7 +1369,7 @@ body[data-dragging] {
 
 .inspector-empty .mono {
   font-family: var(--font-mono);
-  font-size: 0.5625rem;
+  font-size: 0.625rem;
   letter-spacing: var(--tracking-stamp);
   text-transform: uppercase;
   color: var(--paper-sepia);
@@ -1403,7 +1403,7 @@ body[data-dragging] {
   display: block;
   margin-bottom: var(--sp-2);
   font-family: var(--font-mono);
-  font-size: 0.5625rem;
+  font-size: 0.625rem;
   letter-spacing: var(--tracking-stamp);
   text-transform: uppercase;
   color: var(--color-accent);
@@ -1423,7 +1423,7 @@ body[data-dragging] {
 
 .detail-specimen__archive {
   font-family: var(--font-mono);
-  font-size: 0.5625rem;
+  font-size: 0.625rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--color-accent);
@@ -1473,7 +1473,7 @@ body[data-dragging] {
 
 .detail-side-note__state {
   font-family: var(--font-mono);
-  font-size: 0.5625rem;
+  font-size: 0.625rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
@@ -1551,7 +1551,7 @@ body[data-dragging] {
 
 .plan-data-card__type {
   font-family: var(--font-mono);
-  font-size: 0.5625rem;
+  font-size: 0.625rem;
   letter-spacing: var(--tracking-stamp);
   text-transform: uppercase;
   color: var(--color-accent);
@@ -1700,7 +1700,7 @@ body[data-dragging] {
 
 .plan-data-card__count {
   font-family: var(--font-mono);
-  font-size: 0.5625rem;
+  font-size: 0.625rem;
   color: var(--text-muted);
 }
 
@@ -1844,7 +1844,7 @@ body[data-dragging] {
   margin-top: 4px;
   font-family: var(--font-mono);
   font-size: 0.5rem;
-  letter-spacing: 0.09em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--color-accent);
 }
@@ -2094,7 +2094,7 @@ body[data-dragging] {
 
 .prep-field .field__label {
   font-family: var(--font-mono);
-  font-size: 0.5625rem;
+  font-size: 0.625rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--paper-sepia);
@@ -2305,7 +2305,7 @@ body[data-dragging] {
   margin-top: 2px;
   font-family: var(--font-mono);
   font-size: 0.5rem;
-  letter-spacing: 0.09em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--color-accent);
 }
@@ -2388,7 +2388,7 @@ body[data-dragging] {
 
 .onboard__step-num {
   font-family: var(--font-mono);
-  font-size: 0.5625rem;
+  font-size: 0.625rem;
   letter-spacing: var(--tracking-stamp);
   color: var(--color-accent);
 }
@@ -2428,7 +2428,7 @@ body[data-dragging] {
 
 .onboard__try-head .mono {
   font-family: var(--font-mono);
-  font-size: 0.5625rem;
+  font-size: 0.625rem;
   letter-spacing: var(--tracking-stamp);
   text-transform: uppercase;
   color: var(--color-accent);
@@ -2537,7 +2537,7 @@ body[data-dragging] {
 .specimen__drag-note {
   font-family: var(--font-mono);
   font-size: 0.5rem;
-  letter-spacing: 0.09em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--text-muted);
   max-width: 24ch;
@@ -2884,7 +2884,7 @@ body[data-dragging] {
   gap: 5px;
   font-family: var(--font-mono);
   font-size: 0.5rem;
-  letter-spacing: 0.09em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--text-muted);
 }
@@ -2981,7 +2981,7 @@ body[data-dragging] {
   border-radius: var(--r-sm);
   font-family: var(--font-mono);
   font-size: 0.5rem;
-  letter-spacing: 0.09em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--paper-sepia);
   box-shadow: var(--shadow-paper-1);
@@ -3208,7 +3208,7 @@ body[data-dragging] {
   align-items: center;
   gap: 4px;
   font-family: var(--font-mono);
-  font-size: 0.5625rem;
+  font-size: 0.625rem;
   letter-spacing: var(--tracking-stamp);
   text-transform: uppercase;
   color: var(--paper-sepia);
@@ -3261,7 +3261,7 @@ body[data-dragging] {
 .receipt-card__policy {
   margin: 0;
   font-family: var(--font-mono);
-  font-size: 0.5625rem;
+  font-size: 0.625rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--paper-sepia);
@@ -3323,5 +3323,425 @@ body[data-dragging] {
 
   .toast__action {
     margin-left: 0;
+  }
+}
+
+/* ==========================================================================
+   9 — FEEL: pointer tilt, drag lift, keyboard layer
+   Motion is decoration. Nothing here conveys information that is only motion.
+   ========================================================================== */
+
+/* ---- paper under the pointer ------------------------------------------ */
+.data-card[data-pointer='true'] {
+  transform: perspective(1000px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg))
+    translateY(-2px);
+  border-color: #c9c1ad;
+  box-shadow: var(--shadow-paper-2);
+  will-change: transform;
+}
+
+/* A raking light across the sheet. Soft-light keeps the ink clean. */
+.data-card[data-pointer='true']::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(
+    260px circle at var(--glow-x, 50%) var(--glow-y, 50%),
+    rgba(255, 255, 255, 0.55),
+    rgba(255, 255, 255, 0) 62%
+  );
+  mix-blend-mode: soft-light;
+}
+
+/* ---- the card in hand -------------------------------------------------- */
+.data-card[data-dragging='true'] {
+  border-color: var(--color-accent-line);
+  box-shadow: var(--shadow-paper-3);
+  transform: rotate(0.7deg) scale(1.012);
+  opacity: 0.55;
+}
+
+.drag-ghost {
+  animation: ghost-lift 180ms var(--ease-emphasis) both;
+}
+
+@keyframes ghost-lift {
+  from {
+    transform: rotate(-1.4deg) scale(0.98);
+    opacity: 0.6;
+  }
+  to {
+    transform: rotate(0.8deg) scale(1.01);
+    opacity: 1;
+  }
+}
+
+/* ---- compatible zones breathe while a card is in hand ------------------ */
+.action-dock[data-dragging='true'] .action-zone[data-compatible='true'] {
+  animation: zone-breathe 2.6s var(--ease-in-out) infinite;
+}
+
+.action-dock[data-dragging='true'] .action-zone[data-compatible='false'] {
+  filter: grayscale(0.55);
+  opacity: 0.4;
+}
+
+@keyframes zone-breathe {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(169, 63, 40, 0);
+  }
+  50% {
+    box-shadow: 0 0 0 3px rgba(169, 63, 40, 0.12);
+  }
+}
+
+.action-zone[data-over='true'] {
+  transform: translateY(-1px) scale(1.012);
+}
+
+/* ---- keyboard layer ---------------------------------------------------- */
+.header-kbd {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border: 1px solid var(--paper-rule);
+  border-radius: var(--r-tab);
+  background: var(--paper-warm);
+  color: var(--paper-sepia);
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+  transition: border-color var(--t-fast) var(--ease-out), color var(--t-fast),
+    background-color var(--t-fast);
+}
+
+.header-kbd:hover {
+  border-color: #c9c1ad;
+  color: var(--text);
+  background: var(--paper-ivory);
+}
+
+.header-kbd__label {
+  display: none;
+}
+
+@media (min-width: 960px) {
+  .header-kbd__label {
+    display: inline;
+  }
+}
+
+kbd,
+.footer-kbd kbd,
+.chord-hint kbd,
+.shortcut-row__keys kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  padding: 1px 5px;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  line-height: 1.5;
+  color: var(--paper-sepia);
+  background: var(--paper-ivory);
+  border: 1px solid var(--paper-rule);
+  border-bottom-width: 2px;
+  border-radius: 3px;
+}
+
+.footer-kbd {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 0;
+  font-size: var(--fs-small);
+  color: var(--text-muted);
+  text-align: left;
+}
+
+.footer-kbd:hover {
+  color: var(--color-accent);
+}
+
+.chord-hint {
+  position: fixed;
+  left: 50%;
+  bottom: 200px;
+  transform: translateX(-50%);
+  z-index: 190;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: var(--sp-2) var(--sp-3);
+  font-size: 0.75rem;
+  color: var(--paper-sepia);
+  background: var(--paper-warm);
+  border: 1px solid var(--paper-rule);
+  border-radius: var(--r-tab);
+  box-shadow: var(--shadow-paper-1);
+  pointer-events: none;
+  animation: chord-in 140ms var(--ease-out) both;
+}
+
+@keyframes chord-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 4px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+/* ---- the shortcut sheet ------------------------------------------------ */
+.shortcut-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 320;
+  display: grid;
+  place-items: center;
+  padding: var(--sp-5);
+  background: rgba(32, 35, 31, 0.42);
+  backdrop-filter: blur(3px);
+  animation: fade-in 160ms var(--ease-out) both;
+}
+
+.shortcut-sheet {
+  width: min(760px, 100%);
+  max-height: min(86vh, 720px);
+  overflow: auto;
+  padding: var(--sp-5) var(--sp-6) var(--sp-5);
+  background-color: var(--paper-ivory);
+  background-image: var(--paper-grain);
+  background-size: var(--paper-grain-size);
+  border: 1px solid var(--paper-rule);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-paper-3);
+  animation: sheet-in 200ms var(--ease-emphasis) both;
+}
+
+@keyframes sheet-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.shortcut-sheet__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-2);
+}
+
+.shortcut-sheet__title {
+  font-size: 1.55rem;
+  letter-spacing: var(--tracking-tight);
+  margin-bottom: var(--sp-2);
+}
+
+.shortcut-sheet__sub {
+  margin: 0 0 var(--sp-5);
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+  max-width: 62ch;
+}
+
+.shortcut-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: var(--sp-5);
+}
+
+.shortcut-group__title {
+  font-family: var(--font-sans);
+  font-size: var(--fs-micro);
+  font-weight: 600;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--paper-sepia);
+  padding-bottom: var(--sp-2);
+  margin-bottom: var(--sp-2);
+  border-bottom: 1px solid var(--paper-rule);
+}
+
+.shortcut-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.shortcut-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+.shortcut-row__keys {
+  display: inline-flex;
+  gap: 3px;
+  flex: none;
+  min-width: 74px;
+}
+
+.shortcut-row__label {
+  color: var(--text-muted);
+}
+
+.shortcut-sheet__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  flex-wrap: wrap;
+  margin-top: var(--sp-5);
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--paper-rule);
+}
+
+.shortcut-sheet__hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: var(--paper-sepia);
+}
+
+/* ---- focus is part of the material ------------------------------------ */
+.data-card:focus-within {
+  border-color: var(--color-accent-line);
+  box-shadow: var(--shadow-paper-2), 0 0 0 2px rgba(169, 63, 40, 0.16);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .data-card[data-pointer='true'],
+  .data-card[data-dragging='true'],
+  .action-zone[data-over='true'] {
+    transform: none;
+  }
+
+  .drag-ghost,
+  .chord-hint,
+  .shortcut-sheet,
+  .shortcut-overlay,
+  .action-dock[data-dragging='true'] .action-zone[data-compatible='true'] {
+    animation: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .header-kbd {
+    display: none;
+  }
+
+  .chord-hint {
+    bottom: 232px;
+    font-size: 0.6875rem;
+  }
+}
+
+/* ==========================================================================
+   10 — READING: measure, rhythm and quiet emphasis
+   The archive is read before it is used. These rules cap line length, open up
+   leading and make the small print legible without shouting.
+   ========================================================================== */
+
+.hero__lead,
+.canvas-head__sub,
+.section-heading__sub,
+.panel__text,
+.story-block p,
+.project-hero__lead,
+.submit-intro,
+.receipt-policy__text,
+.desk-archive__note,
+.empty-state__text {
+  max-width: 66ch;
+  line-height: var(--lh-read);
+  font-size: 1rem;
+  color: var(--text-muted);
+}
+
+/* Paragraph rhythm inside long-form blocks, without touching markup. */
+.story-block p + p,
+.project-hero__lead + p,
+.panel__text + p {
+  margin-top: 0.85em;
+}
+
+.project-data-card__desc {
+  line-height: 1.62;
+  font-size: 0.875rem;
+}
+
+.project-data-card__title {
+  line-height: 1.26;
+}
+
+/* Numbers should line up wherever they are compared. */
+.tab__count,
+.snapshot__num,
+.project-data-card__ordinal,
+.status-mark,
+.receipt-card__window,
+.mono {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Inline links in prose are underlined: colour alone is not a signal. */
+.story-block a,
+.panel__text a,
+.empty-state__text a,
+.receipt-policy__text a,
+.plan-data-card__missing a {
+  text-decoration: underline;
+  text-decoration-color: var(--color-accent-line);
+  text-underline-offset: 2px;
+}
+
+.story-block a:hover,
+.panel__text a:hover {
+  text-decoration-color: var(--color-accent);
+}
+
+/* Body copy never falls below 14px on a phone. */
+@media (max-width: 480px) {
+  .project-data-card__desc,
+  .receipt-card__what,
+  .plan-data-card__missing,
+  .desk-archive__note {
+    font-size: 0.875rem;
+  }
+
+  .mono {
+    letter-spacing: 0.08em;
+  }
+}
+
+/* Forced-colours: paper must survive a high-contrast theme. */
+@media (forced-colors: active) {
+  .data-card,
+  .receipt-card,
+  .action-zone,
+  .shortcut-sheet {
+    border: 1px solid CanvasText;
+  }
+
+  .data-card[data-pointer='true']::before,
+  .chord-hint {
+    display: none;
   }
 }

@@ -1,5 +1,6 @@
 import { useDraggable } from '@dnd-kit/core'
 import { Grip } from '../ui/Icons'
+import { usePointerTilt } from '../../hooks/usePointerTilt'
 
 /**
  * DraggableDataCard — the shell every movable object shares.
@@ -22,10 +23,17 @@ export function DraggableDataCard({
     data: { item },
     disabled,
   })
+  const tiltRef = usePointerTilt()
+
+  // dnd-kit needs the node; so does the paper tilt. One callback, both refs.
+  const attach = (node) => {
+    tiltRef.current = node
+    setNodeRef(node)
+  }
 
   return (
     <article
-      ref={setNodeRef}
+      ref={attach}
       className={`data-card${className ? ` ${className}` : ''}`}
       data-dragging={isDragging}
       data-draggable={!disabled}

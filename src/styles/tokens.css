@@ -8,7 +8,7 @@
   --color-canvas: #f5f3ed;
   --color-paper: #fffefa;
   --color-ink: #20231f;
-  --color-muted: #62675e;
+  --color-muted: #565b52;
   --color-subtle: #eae7de;
   --color-line: #d8d6cc;
   --color-accent: #a93f28;
@@ -26,7 +26,7 @@
   --paper-warm: #fbf7ee;
   --paper-kraft: #eee7d8;
   --paper-kraft-deep: #e4dac6;
-  --paper-sepia: #6e6552;
+  --paper-sepia: #635b4a;
   --paper-edge: rgba(78, 66, 44, 0.1);
   --paper-rule: #ded8c8;
 
@@ -76,12 +76,13 @@
   --fs-h3: 1.4rem;
   --fs-h4: 1.0625rem;
   --fs-body: 1rem;
-  --fs-small: 0.8125rem;
-  --fs-micro: 0.6875rem;
+  --fs-small: 0.84375rem;
+  --fs-micro: 0.71875rem;
 
   --lh-tight: 1.08;
   --lh-snug: 1.28;
-  --lh-body: 1.6;
+  --lh-body: 1.62;
+  --lh-read: 1.72;
 
   --tracking-tight: -0.022em;
   --tracking-display: -0.03em;

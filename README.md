@@ -64,7 +64,7 @@ Other commands:
 ```bash
 npm run build      # production build into dist/
 npm run preview    # serve the production build
-npm run check:canvas  # smoke, sorting, dispatcher, restore, panels, mount, compliance
+npm run check:canvas  # smoke, sorting, dispatcher, restore, keyboard, pointer, panels, mount, compliance
 ```
 
 ## The product
@@ -147,6 +147,42 @@ tests:
 Discarding a project you published also removes the revival plans that pointed at it, and the
 confirmation names how many. Archiving a plan never hides it: archived plans stay in their own
 labelled section on the desk, so the last active plan can always be brought back.
+
+## Feel: pointer and keyboard
+
+The canvas answers the hand and the keys, without ever letting either mutate a record outside
+`performDrop()`.
+
+**Pointer**
+- Cards tilt up to 2.6° toward the cursor with a raking light across the sheet (`usePointerTilt`,
+  rAF-throttled, fine-pointer only, off for `prefers-reduced-motion`).
+- A card in hand lifts and rotates; the drag ghost settles in with a short spring.
+- While a card is lifted the tray stops looking like a menu: compatible zones breathe, incompatible
+  zones fade back, and the zone under the pointer lifts to meet it.
+- Focus is material too — a card with focus-within holds the same raised edge as a hover.
+
+**Keyboard** (`src/hooks/useKeyboardShortcuts.js`)
+
+| Key | Does |
+| --- | --- |
+| `g` then `h` / `e` / `d` / `s` / `r` | Home · Explore · Desk · Submit · Recently removed (a hint chip appears while `g` is armed) |
+| `/` | Jump to search — navigates to Explore and focuses the field if needed |
+| `j` / `k` | Walk the cards; focus lands on the grip so `Space` can lift it immediately |
+| `Space`, arrows, `Space`, `Esc` | Lift → choose a zone → drop, or put the card back |
+| `?` | The shortcut sheet (header chip or footer link open it too) |
+
+Every handler bails out while an input, textarea, select or contenteditable has focus, so typing
+`?` in search searches for it. The shortcut sheet is a real dialog: focus moves in, `Tab` is
+trapped, `Esc` closes and focus returns to where it was. Nothing in the keyboard layer writes to
+storage — it routes and focuses only.
+
+**Reading**
+- Body copy is capped at 66 characters and set at `--lh-read` (1.72); card descriptions got more
+  leading and the smallest stamped labels moved from 9px to 10px.
+- Muted text and the sepia stamp were darkened for contrast; numerals are tabular wherever they
+  are compared; prose links are underlined, not colour-only.
+- Nothing in the interface falls below 14px on a phone, and forced-colours mode replaces every
+  paper edge with `CanvasText`.
 
 ## The paper system
 

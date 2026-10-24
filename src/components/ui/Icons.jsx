@@ -295,6 +295,16 @@ export function Spade(props) {
 }
 
 /** Six-dot drag grip — the universal "pick this up" affordance. */
+/** Keyboard — a small keypad glyph for the shortcuts affordance. */
+export function Keyboard(props) {
+  return (
+    <svg {...base} {...props}>
+      <rect x="2.5" y="6" width="19" height="12" rx="2" />
+      <path d="M6 9.5h.01M9.5 9.5h.01M13 9.5h.01M16.5 9.5h.01M6 12.8h.01M9.5 12.8h.01M13 12.8h.01M16.5 12.8h.01M8 15.6h8" />
+    </svg>
+  )
+}
+
 export function Grip(props) {
   return (
     <svg {...base} {...props}>
