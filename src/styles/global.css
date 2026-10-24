@@ -79,6 +79,11 @@ p {
   text-wrap: pretty;
 }
 
+/* Long unbroken strings (URLs, hashes, long titles) must never widen the page */
+body {
+  overflow-wrap: break-word;
+}
+
 ::selection {
   background: var(--color-accent);
   color: #fff;

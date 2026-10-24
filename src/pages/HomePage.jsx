@@ -4,8 +4,9 @@ import { useRE } from '../context/REContext'
 import { SectionHeading } from '../components/ui/SectionHeading'
 import { StageBadge } from '../components/ui/StageBadge'
 import { ProgressBar } from '../components/ui/ProgressBar'
-import { ProjectGlyph } from '../components/ui/ProjectGlyph'
+
 import { ProjectCard } from '../components/projects/ProjectCard'
+import { ProjectCover } from '../components/projects/ProjectCover'
 import { BookmarkButton } from '../components/projects/BookmarkButton'
 import { CATEGORIES, categoryLabel, categoryColor } from '../data/categories'
 import { countByFacet } from '../utils/projectFilters'
@@ -94,6 +95,14 @@ export function HomePage() {
                     <span className="mono">RE / ARCHIVE 001</span>
                     <span className="annotation annotation--muted">Featured entry</span>
                   </div>
+
+                  <ProjectCover
+                    project={heroProject}
+                    ratio="3x2"
+                    className="specimen__photo"
+                    eager
+                    alt={`${heroProject.title} — ${categoryLabel(heroProject.category)} archive photograph`}
+                  />
 
                   <h2 className="specimen__title">{heroProject.title}</h2>
 

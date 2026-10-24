@@ -74,7 +74,6 @@
   .detail-aside {
     grid-column: 1 / -1;
     position: static;
-    order: -1;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--sp-5);
@@ -303,11 +302,7 @@
   }
 
   .shelf-feature .project-card__title {
-    font-size: 1.6rem;
-  }
-
-  .shelf-feature .glyph {
-    height: 120px;
+    font-size: 1.5rem;
   }
 
   .how-grid {
@@ -487,6 +482,76 @@
   .modal,
   .filter-drawer__panel {
     animation: none;
+  }
+
+  .cover > img {
+    transform: none !important;
+  }
+}
+
+/* ---------------------- Touch targets & mobile polish ------------------- */
+@media (max-width: 767px) {
+  /* Comfortable tap targets on the controls that shrink on mobile */
+  .filter-opt,
+  .chip,
+  .stepper__item,
+  .interest-opt {
+    min-height: 44px;
+  }
+
+  .icon-btn,
+  .icon-btn--sm {
+    min-width: 40px;
+    min-height: 40px;
+  }
+
+  .tab {
+    min-height: 44px;
+    align-items: center;
+  }
+
+  /* Suppress the grey tap flash the browser paints on touch */
+  a,
+  button,
+  .choice,
+  .filter-opt,
+  .chip,
+  .interest-opt,
+  .filter-opt__label {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Titles and descriptions must wrap rather than overflow */
+  .project-card__title,
+  .project-card__desc,
+  .dossier__title,
+  .detail-head__title,
+  .detail-head__summary,
+  .story-block__note,
+  .plan-card__title,
+  .plan-card__intention,
+  .note-item__text,
+  .modal__title {
+    overflow-wrap: anywhere;
+  }
+
+  .specimen__photo {
+    margin-top: var(--sp-4);
+  }
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+  /* Tablets get the same touch targets without the smallest-screen overrides */
+  .filter-opt,
+  .stepper__item {
+    min-height: 44px;
+  }
+
+  .project-card__title,
+  .dossier__title,
+  .detail-head__title,
+  .plan-card__title {
+    overflow-wrap: anywhere;
   }
 }
 

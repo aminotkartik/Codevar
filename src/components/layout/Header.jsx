@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { useRouter, Link } from '../../app/router'
 import { Wordmark } from '../ui/Wordmark'
-import { Menu, Plus, ArrowUpRight } from '../ui/Icons'
+import { Menu, Plus } from '../ui/Icons'
 
 const NAV_ITEMS = [
   { id: 'explore', to: '/explore', label: 'Explore' },

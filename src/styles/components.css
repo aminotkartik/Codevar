@@ -503,8 +503,7 @@
 .project-card__cta {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--sp-3);
+  gap: var(--sp-2);
   margin-top: auto;
   padding-top: var(--sp-4);
   color: var(--text-muted);
@@ -535,6 +534,73 @@
 .glyph svg {
   width: 100%;
   height: 100%;
+}
+
+/* ---- Project cover: an archival photograph in a shared frame --------- */
+.cover {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--color-subtle);
+}
+
+.cover--16x9 {
+  aspect-ratio: 16 / 9;
+}
+
+.cover--3x2 {
+  aspect-ratio: 3 / 2;
+}
+
+.cover--4x3 {
+  aspect-ratio: 4 / 3;
+}
+
+.cover--1x1 {
+  aspect-ratio: 1 / 1;
+}
+
+.cover--21x9 {
+  aspect-ratio: 21 / 9;
+}
+
+.cover > img,
+.cover > svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  transition: transform var(--t-slow) var(--ease-out), filter var(--t-slow) var(--ease-out);
+}
+
+.project-card:hover .cover > img,
+.project-card:focus-within .cover > img {
+  transform: scale(1.035);
+}
+
+/* a hairline frame inside the photograph, echoing the archive's revision marks */
+.cover::after {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: calc(var(--r-md) - 5px);
+  pointer-events: none;
+  z-index: 2;
+  mix-blend-mode: screen;
+  opacity: 0.7;
+}
+
+/* legibility scrim for wide hero covers */
+.cover--21x9::before {
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 42%;
+  background: linear-gradient(to top, rgba(32, 35, 31, 0.55), rgba(32, 35, 31, 0));
+  pointer-events: none;
+  z-index: 1;
 }
 
 /* ---- Archive identifier rail ------------------------------------------ */
@@ -662,6 +728,20 @@
 .input::placeholder,
 .textarea::placeholder {
   color: #9c9e93;
+}
+
+/* we render our own clear affordance, so hide the native search decoration */
+input[type='search'] {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+input[type='search']::-webkit-search-cancel-button,
+input[type='search']::-webkit-search-decoration,
+input[type='search']::-webkit-search-results-button,
+input[type='search']::-webkit-search-results-decoration {
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .input:hover,

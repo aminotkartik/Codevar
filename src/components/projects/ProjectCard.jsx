@@ -2,7 +2,7 @@ import { useRouter, Link } from '../../app/router'
 import { categoryLabel, categoryColor } from '../../data/categories'
 import { StageBadge } from '../ui/StageBadge'
 import { ProgressBar } from '../ui/ProgressBar'
-import { ProjectGlyph } from '../ui/ProjectGlyph'
+import { ProjectCover } from './ProjectCover'
 import { ArrowUpRight } from '../ui/Icons'
 import { BookmarkButton } from './BookmarkButton'
 
@@ -31,7 +31,11 @@ export function ProjectCard({ project, variant = 'default' }) {
         />
       </div>
 
-      <ProjectGlyph project={project} className={variant === 'feature' ? 'glyph--shelf' : undefined} />
+      <ProjectCover
+        project={project}
+        ratio={variant === 'feature' ? '3x2' : '16x9'}
+        alt={`${project.title} — ${categoryLabel(project.category)} archive photograph`}
+      />
 
       <div>
         <span

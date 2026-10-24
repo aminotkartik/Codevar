@@ -4,11 +4,11 @@ import { useRE } from '../context/REContext'
 import { RevivalDialog } from '../components/revival/RevivalDialog'
 import { StewardshipDialog } from '../components/revival/StewardshipDialog'
 import { BookmarkButton } from '../components/projects/BookmarkButton'
+import { ProjectCover } from '../components/projects/ProjectCover'
 import { HandoffChecklist } from '../components/projects/HandoffChecklist'
 import { ProjectFieldNotes } from '../components/projects/ProjectFieldNotes'
 import { StageBadge } from '../components/ui/StageBadge'
 import { ProgressBar } from '../components/ui/ProgressBar'
-import { ProjectGlyph } from '../components/ui/ProjectGlyph'
 import {
   categoryLabel,
   categoryColor,
@@ -87,6 +87,14 @@ export function ProjectPage({ slug }) {
 
         {/* ================= HEAD ================= */}
         <header className="detail-head">
+          <ProjectCover
+            project={project}
+            ratio="21x9"
+            className="detail-cover"
+            eager
+            alt={`${project.title} — ${categoryLabel(project.category)} archive photograph`}
+          />
+
           <div className="archive-id">
             <span className="archive-id__num">{project.id.replace('-', '—')}</span>
             <span>·</span>

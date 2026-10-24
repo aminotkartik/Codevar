@@ -150,16 +150,24 @@ function Blocks({ seed }) {
 
 const PATTERNS = [Arcs, GridDots, Bars, Rings, Rays, Blocks]
 
-export function ProjectGlyph({ project, className }) {
+/**
+ * `bare` renders just the artwork so it can sit inside ProjectCover's frame
+ * when a project has no photograph.
+ */
+export function ProjectGlyph({ project, className, bare = false }) {
   const seed = hash(project.id || project.slug || project.title)
   const Pattern = PATTERNS[seed % PATTERNS.length]
 
+  const artwork = (
+    <svg viewBox="0 0 200 120" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <rect width="200" height="120" fill={SOFT} />
+      <Pattern seed={seed} />
+    </svg>
+  )
+
+  if (bare) return artwork
+
   return (
-    <div className={`glyph${className ? ` ${className}` : ''}`} aria-hidden="true">
-      <svg viewBox="0 0 200 120" preserveAspectRatio="xMidYMid slice">
-        <rect width="200" height="120" fill={SOFT} />
-        <Pattern seed={seed} />
-      </svg>
-    </div>
+    <div className={`glyph${className ? ` ${className}` : ''}`}>{artwork}</div>
   )
 }
