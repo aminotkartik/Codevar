@@ -79,7 +79,95 @@ const PRIMARY_HELPERS = [
   'recordReceipt',
 ]
 
+/* ------------------------------------------------------------------------ */
+/* Design tokens                                                            */
+/* ------------------------------------------------------------------------ */
+
+function srgbLum(hex) {
+  const raw = String(hex).replace('#', '')
+  const full = raw.length === 3 ? raw.split('').map((c) => c + c).join('') : raw
+  if (!/^[0-9a-f]{6}$/i.test(full)) return null
+  const channel = (value) => {
+    const c = parseInt(value, 16) / 255
+    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4
+  }
+  return (
+    0.2126 * channel(full.slice(0, 2)) +
+    0.7152 * channel(full.slice(2, 4)) +
+    0.0722 * channel(full.slice(4, 6))
+  )
+}
+
+function contrast(a, b) {
+  const la = srgbLum(a)
+  const lb = srgbLum(b)
+  if (la === null || lb === null) return null
+  const hi = Math.max(la, lb)
+  const lo = Math.min(la, lb)
+  return (hi + 0.05) / (lo + 0.05)
+}
+
+/**
+ * A `var(--token)` with no fallback and no definition is invalid at computed
+ * value time, so the property silently falls back to `inherit`. That is how the
+ * dark closing section ended up rendering near-black heading text on a
+ * near-black surface. Tokens provided inline by components are exempt.
+ */
+function auditCssTokens() {
+  const dir = path.join(SRC, 'styles')
+  const files = fs.readdirSync(dir).filter((name) => name.endsWith('.css'))
+  const sources = new Map(
+    files.map((name) => [name, fs.readFileSync(path.join(dir, name), 'utf8')]),
+  )
+
+  const defined = new Set()
+  for (const source of sources.values()) {
+    for (const match of source.matchAll(/(--[a-z0-9-]+)\s*:/gi)) defined.add(match[1])
+  }
+
+  const problems = []
+  for (const [name, source] of sources) {
+    for (const match of source.matchAll(/var\((--[a-z0-9-]+)(\s*,)?/gi)) {
+      if (match[2]) continue // an explicit fallback is safe by construction
+      if (defined.has(match[1])) continue
+      problems.push(`${name}: ${match[1]}`)
+    }
+  }
+
+  check('every colour token is defined or has a fallback', problems.length === 0, problems.join('; '))
+
+  const surface = (sources.get('tokens.css') || '').match(/--color-dark-surface:\s*(#[0-9a-f]{3,6})/i)?.[1]
+  const ink = (sources.get('tokens.css') || '').match(/--color-dark-ink:\s*(#[0-9a-f]{3,6})/i)?.[1]
+  check('dark surfaces define an ink colour', Boolean(surface && ink), `${surface} / ${ink}`)
+
+  const ratio = surface && ink ? contrast(ink, surface) : null
+  check(
+    'text on dark stock is legible (>= 7:1)',
+    ratio !== null && ratio >= 7,
+    ratio === null ? 'could not compute' : `${ratio.toFixed(2)}:1`,
+  )
+
+  const body = sources.get('tokens.css') || ''
+  const mutedLight = body.match(/--color-muted:\s*(#[0-9a-f]{3,6})/i)?.[1]
+  const canvas = body.match(/--color-canvas:\s*(#[0-9a-f]{3,6})/i)?.[1]
+  const mutedRatio = mutedLight && canvas ? contrast(mutedLight, canvas) : null
+  check(
+    'muted body text clears WCAG AA on paper',
+    mutedRatio !== null && mutedRatio >= 4.5,
+    mutedRatio === null ? 'could not compute' : `${mutedRatio.toFixed(2)}:1`,
+  )
+
+  const darkMuted = body.match(/--color-dark-muted:\s*(#[0-9a-f]{3,6})/i)?.[1]
+  const darkMutedRatio = darkMuted && surface ? contrast(darkMuted, surface) : null
+  check(
+    'muted text on dark stock clears WCAG AA',
+    darkMutedRatio !== null && darkMutedRatio >= 4.5,
+    darkMutedRatio === null ? 'could not compute' : `${darkMutedRatio.toFixed(2)}:1`,
+  )
+}
+
 function auditStatic() {
+  auditCssTokens()
   const files = walk(SRC)
   const violations = []
 
