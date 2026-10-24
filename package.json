@@ -3,12 +3,12 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "RE \u2014 Code Variant, Build 01. A frontend prototype for an open archive of unfinished possibilities.",
+  "description": "RE — Code Variant, Build 01. A frontend prototype for an open archive of unfinished possibilities.",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0",
-    "check:canvas": "vite build --ssr scripts/smoke-entry.jsx --outDir .smoke --logLevel warn && node .smoke/smoke-entry.js && vite build --ssr scripts/dispatch-test.jsx --outDir .smoke --logLevel warn && node .smoke/dispatch-test.js && vite build --ssr scripts/panels-test.jsx --outDir .smoke --logLevel warn && node .smoke/panels-test.js"
+    "check:canvas": "vite build --ssr scripts/smoke-entry.jsx --outDir .smoke --logLevel warn && node .smoke/smoke-entry.js && vite build --ssr scripts/dispatch-test.jsx --outDir .smoke --logLevel warn && node .smoke/dispatch-test.js && vite build --ssr scripts/panels-test.jsx --outDir .smoke --logLevel warn && node .smoke/panels-test.js && vite build --ssr scripts/app-mount-test.jsx --outDir .smoke --logLevel warn && node .smoke/app-mount-test.js"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

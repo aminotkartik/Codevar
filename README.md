@@ -44,7 +44,7 @@ Other commands:
 ```bash
 npm run build      # production build into dist/
 npm run preview    # serve the production build
-npm run check:canvas  # SSR smoke render + dispatcher + panel tests (jsdom)
+npm run check:canvas  # SSR smoke render, dispatcher, panel and browser-mount tests
 ```
 
 ## The product
