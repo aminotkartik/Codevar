@@ -677,7 +677,12 @@
 .filter-drawer {
   position: fixed;
   inset: 0;
-  z-index: 100;
+  /* A modal drawer must sit above every fixed surface it can overlap: the
+     Action Zone dock (180), the chord hint (190) and toasts (200). At 100 the
+     tray painted over the drawer footer and swallowed taps on the last
+     filters and on "Show results". Below onboarding (260) and the shortcut
+     sheet (320), which are allowed to open on top. */
+  z-index: 240;
 }
 
 .filter-drawer__panel {
@@ -718,6 +723,7 @@
 
 .filter-drawer__foot {
   padding: var(--sp-4) var(--sp-5);
+  padding-bottom: calc(var(--sp-4) + env(safe-area-inset-bottom, 0px));
   border-top: 1px solid var(--border);
   display: flex;
   gap: var(--sp-3);

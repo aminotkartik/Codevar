@@ -83,7 +83,12 @@ export function ExplorePage() {
     navigate(target, { replace: history !== 'push', scroll: 'never' })
   }
 
-  const setFacet = (facet, values) => update({ ...filters, [facet]: values })
+  /**
+   * FilterPanel hands back a complete next filters object, not a facet/value
+   * pair. Taking a (facet, values) pair here meant every checkbox wrote a
+   * "[object Object]" key and no facet ever changed.
+   */
+  const applyFacets = (next) => update(next)
   const toggleFacetValue = (facet, value) => {
     const current = filters[facet]
     update({
@@ -179,7 +184,7 @@ export function ExplorePage() {
                   </button>
                 )}
               </div>
-              <FilterPanel projects={projects} filters={filters} onChange={setFacet} />
+              <FilterPanel projects={projects} filters={filters} onChange={applyFacets} />
             </div>
 
             <p className="result-meta result-meta--rail" aria-live="polite">
@@ -290,7 +295,7 @@ export function ExplorePage() {
         onClose={() => setDrawerOpen(false)}
         projects={projects}
         filters={filters}
-        onChange={setFacet}
+        onChange={applyFacets}
       />
     </div>
   )
