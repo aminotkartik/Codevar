@@ -18,7 +18,6 @@ body {
   background-color: var(--color-canvas);
   background-image: var(--paper-grain);
   background-size: var(--paper-grain-size);
-  background-attachment: fixed;
 }
 
 .app {
