@@ -3137,3 +3137,191 @@ body[data-dragging] {
 .plan-data-card__missing b {
   font-weight: 600;
 }
+
+/* ==========================================================================
+   8 — REMOVAL RECEIPTS (recovery is a drop, not a button)
+   ========================================================================== */
+
+.receipt-policy {
+  display: flex;
+  gap: var(--sp-3);
+  align-items: flex-start;
+  padding: var(--sp-3) var(--sp-4);
+  margin-bottom: var(--sp-4);
+  background: var(--paper-warm);
+  border: 1px solid var(--paper-rule);
+  border-left: 3px solid var(--color-accent-soft);
+  border-radius: var(--r-sm);
+}
+
+.receipt-policy__icon {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--paper-ivory);
+  border: 1px solid var(--paper-rule);
+  color: var(--color-accent);
+}
+
+.receipt-policy__title {
+  margin: 0 0 2px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: var(--tracking-tight);
+}
+
+.receipt-policy__text {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--text-muted);
+  max-width: 66ch;
+}
+
+/* ---- the receipt itself: a torn slip from the desk ---------------- */
+.receipt-card {
+  background-color: var(--paper-kraft);
+  border: 1px solid #d7cfba;
+  border-left: 3px dashed rgba(120, 106, 82, 0.45);
+}
+
+.receipt-card[data-disabled='true'] {
+  background-color: var(--paper-warm);
+  border-left-style: solid;
+  border-left-color: var(--paper-rule);
+  opacity: 0.9;
+}
+
+.receipt-card__head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-1);
+}
+
+.receipt-card__kind,
+.receipt-card__window {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  letter-spacing: var(--tracking-stamp);
+  text-transform: uppercase;
+  color: var(--paper-sepia);
+}
+
+.receipt-card__kind {
+  padding: 2px 6px;
+  border: 1px solid rgba(120, 106, 82, 0.3);
+  border-radius: var(--r-tab);
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.receipt-card__window[data-expired='true'] {
+  color: var(--color-danger, #9a4a2f);
+}
+
+.receipt-card__spacer {
+  flex: 1;
+}
+
+.receipt-card__title {
+  margin: 0 0 var(--sp-1);
+  font-size: 1rem;
+  letter-spacing: var(--tracking-tight);
+}
+
+.receipt-card__what {
+  margin: 0 0 var(--sp-2);
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
+.receipt-card__how {
+  display: flex;
+  gap: var(--sp-2);
+  align-items: flex-start;
+  margin: 0 0 var(--sp-1);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.receipt-card__how svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--color-accent);
+}
+
+.receipt-card__policy {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--paper-sepia);
+}
+
+.receipt-card__blocked {
+  margin: 0;
+  padding: var(--sp-2) var(--sp-3);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--color-danger, #9a4a2f);
+  background: rgba(255, 255, 255, 0.45);
+  border: 1px dashed rgba(154, 74, 47, 0.4);
+  border-radius: var(--r-sm);
+}
+
+.receipt-restore {
+  margin-top: var(--sp-4);
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--paper-rule);
+}
+
+.receipt-restore .action-zone--inline {
+  max-width: 460px;
+}
+
+/* ---- toast with a reveal action ------------------------------------ */
+.toast__action {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex: none;
+  margin-left: var(--sp-2);
+  padding: 4px 8px;
+  font: inherit;
+  font-size: 0.75rem;
+  color: inherit;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  border-radius: var(--r-tab);
+  cursor: pointer;
+}
+
+.toast__action:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.removal-panel__note {
+  margin: 0 0 var(--sp-3);
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+@media (max-width: 480px) {
+  .receipt-policy {
+    flex-direction: column;
+  }
+
+  .toast__action {
+    margin-left: 0;
+  }
+}

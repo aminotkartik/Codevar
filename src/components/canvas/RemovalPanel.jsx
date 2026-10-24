@@ -5,6 +5,7 @@ import { Portal } from '../ui/Portal'
 import { ActionZone } from './ActionZone'
 import { PendingRemovalCard } from './PendingRemovalCard'
 import { Close, Info } from '../ui/Icons'
+import { REMOVAL_TTL_HOURS } from '../../utils/removals'
 
 /**
  * Zones G, H and the demo reset — staged destructive actions.
@@ -54,6 +55,14 @@ export function RemovalPanel() {
         <p className="removal-panel__text">
           {pendingRemoval.detail} Drop the card below into <b>Confirm removal</b> to go ahead,
           or cancel and the original stays exactly as it was.
+        </p>
+
+        <p className="removal-panel__note">
+          A confirmed removal leaves a receipt in <b>Recently removed</b>, so you can drag it back
+          into <b>Restore</b> for {REMOVAL_TTL_HOURS} hours.
+          {pendingRemoval.kind === 'demo'
+            ? ' The demo reset is the exception: it clears the receipts too.'
+            : ''}
         </p>
 
         <PendingRemovalCard

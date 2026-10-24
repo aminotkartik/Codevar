@@ -11,6 +11,7 @@ import {
   Layers,
   Pen,
   Plus,
+  Restore,
   Trash,
   Users,
 } from '../ui/Icons'
@@ -26,6 +27,7 @@ const ZONE_ICONS = {
   [ZONE.COMPLETED]: Check,
   [ZONE.REOPEN]: ArrowLeft,
   [ZONE.CONFIRM_REMOVAL]: Check,
+  [ZONE.RESTORE]: Restore,
   [ZONE.RESET]: Trash,
   [ZONE.STATUS_DRAFTED]: Pen,
   [ZONE.STATUS_PLANNING]: Layers,

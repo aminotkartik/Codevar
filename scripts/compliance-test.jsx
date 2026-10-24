@@ -75,6 +75,8 @@ const PRIMARY_HELPERS = [
   'setSaved',
   'setPlans',
   'setLocalProjects',
+  'setRemovals',
+  'recordReceipt',
 ]
 
 function auditStatic() {
@@ -145,6 +147,32 @@ function auditStatic() {
   check('desk tabs support arrow-key navigation', /ArrowRight/.test(desk) && /ArrowLeft/.test(desk))
   check('archived plans are never gated behind the active list', !/activePlans\.length > 0 \?/.test(desk))
 
+  // Recovery is a drop: one dispatcher case, no helper a component could call.
+  const toastSource = fs.readFileSync(path.join(SRC, 'components/ui/Toast.jsx'), 'utf8')
+  check('the toast action never mutates records', !/performDrop|setSaved|setPlans|setRemovals/.test(toastSource))
+  check(
+    'the toast action only reveals the card',
+    /navigate\(toast\.action\.to\)/.test(toastSource) && /dismissToast/.test(toastSource),
+  )
+
+  const receiptCard = fs.readFileSync(
+    path.join(SRC, 'components/canvas/RemovalReceiptCard.jsx'),
+    'utf8',
+  )
+  check('the receipt card never dispatches a drop itself', !/performDrop/.test(receiptCard))
+  check('the receipt card cannot be dragged when refused', /disabled=\{!restorable\}/.test(receiptCard))
+  check(
+    'the restore zone accepts receipts only',
+    /id: ZONE\.RESTORE,[\s\S]{0,220}?accepts: \[ITEM\.RECEIPT\]/.test(
+      fs.readFileSync(path.join(SRC, 'dnd/zones.js'), 'utf8'),
+    ),
+  )
+  check(
+    'restore is one dispatcher case',
+    (fs.readFileSync(path.join(SRC, 'context/REContext.jsx'), 'utf8').match(/case ZONE\.RESTORE:/g) || [])
+      .length === 1,
+  )
+
   const dragCard = fs.readFileSync(path.join(SRC, 'components/canvas/DraggableDataCard.jsx'), 'utf8')
   check('drag handle is a semantic button', /<button[\s\S]*?className="drag-grip"/.test(dragCard))
   check('drag handle has an accessible label', /aria-label=/.test(dragCard))
@@ -191,13 +219,36 @@ async function auditLive() {
     },
   ])
 
-  const routes = ['/', '/explore', '/projects/open-orchard', '/desk?tab=saved', '/desk?tab=plans', '/desk?tab=mine', '/submit', '/nope']
+  const routes = [
+    '/',
+    '/explore',
+    '/projects/open-orchard',
+    '/desk?tab=saved',
+    '/desk?tab=plans',
+    '/desk?tab=mine',
+    '/desk?tab=removed',
+    '/submit',
+    '/nope',
+  ]
 
   for (const route of routes) {
     dom.window.localStorage.clear()
     dom.window.localStorage.setItem('re:v1:preferences', seedPrefs)
     dom.window.localStorage.setItem('re:v1:saved', JSON.stringify(['RE-001']))
     dom.window.localStorage.setItem('re:v1:plans', seedPlan)
+    dom.window.localStorage.setItem(
+      're:v1:removals',
+      JSON.stringify([
+        {
+          id: 'removal-audit',
+          kind: 'saved',
+          label: 'Patchwork Atlas',
+          removedAt: new Date().toISOString(),
+          expiresAt: new Date(Date.now() + 6 * 60 * 60 * 1000).toISOString(),
+          snapshot: { projectId: 'RE-002', projectTitle: 'Patchwork Atlas' },
+        },
+      ]),
+    )
     dom.window.history.replaceState({}, '', route)
 
     const host = dom.window.document.createElement('div')

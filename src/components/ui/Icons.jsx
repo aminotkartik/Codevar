@@ -235,6 +235,16 @@ export function ArrowLeft(props) {
   )
 }
 
+/** Restore — a counter-clockwise return arrow. */
+export function Restore(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M4.5 9.5A8 8 0 1 1 4 13" />
+      <path d="M4 4.5v5h5" />
+    </svg>
+  )
+}
+
 export function FileNote(props) {
   return (
     <svg {...base} {...props}>

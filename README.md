@@ -25,7 +25,8 @@ other way.
 | Valid project draft | **Publish to archive** | The project joins the local demo archive, Explore and My projects. |
 | Edited plan card | **Update plan** | The plan is updated, keeping its plan ID and project link. |
 | Saved project or plan | **Remove from desk** | A pending-removal card is created. Nothing is deleted yet. |
-| Pending removal card | **Confirm removal** | The named item leaves your desk; the archive project stays. |
+| Pending removal card | **Confirm removal** | The named item leaves your desk; the archive project stays. A receipt is kept for 24 hours. |
+| Removal receipt | **Restore** | The removed record (and anything that went with it) returns with its original IDs. |
 | Your own published project | **Discard project** | A staged discard of a locally created project. |
 | Open / complete task | **Completed** / **Reopen task** | The task state changes and plan progress follows. |
 | Demo records card | **Reset demo data** | A staged reset of RE's own localStorage keys. |
@@ -63,7 +64,7 @@ Other commands:
 ```bash
 npm run build      # production build into dist/
 npm run preview    # serve the production build
-npm run check:canvas  # smoke render, sorting, dispatcher, panels, mount, compliance
+npm run check:canvas  # smoke, sorting, dispatcher, restore, panels, mount, compliance
 ```
 
 ## The product
@@ -108,6 +109,30 @@ be linked, refreshed, or reached with back/forward without losing context.
 - **Honest feedback.** Toasts and a polite live region describe what actually happened, including
   rejected drops ("This project is already on your Revival Desk"). Invalid drops never mutate data.
 
+## Reversible removals
+
+Confirming a removal writes a **receipt** before it deletes anything, and the only way back is to
+drop that receipt into the **Restore** zone. No button restores anything — the toast's "Show
+restore card" only navigates to `Recently removed`.
+
+| Removed | Receipt holds | Restore writes back |
+| --- | --- | --- |
+| Saved project | the project id and title | the id, once, into `re:v1:saved` — never a copy of the project |
+| Revival plan | the whole plan: id, status, tasks, timestamps, project reference | the plan, unchanged |
+| Published project | the project **and** every plan that pointed at it, plus whether it was saved | all of it, in one drop |
+
+Policy, enforced in code rather than implied in copy:
+
+- A receipt is valid for **24 hours** (`REMOVAL_TTL_MS`) and at most **five** are kept; the oldest
+  snapshot is dropped first.
+- Expired, malformed and already-consumed receipts are pruned on read, so the desk never shows a
+  restore it cannot honour. The countdown on each card is refreshed every minute.
+- Restore is validated before it writes: a plan whose project is gone, a project whose id or slug is
+  taken, and a receipt for records that already exist are all refused with a reason and no writes.
+- A receipt is consumed by its successful restore, so replaying the same card changes nothing.
+- Restoring is idempotent at the storage layer too: every writer filters by id before inserting.
+- Demo reset is the deliberate exception — it clears receipts along with everything else.
+
 ## Records that outlive their data
 
 Two failure modes were found by mounting the app with damaged storage and are now covered by
@@ -133,7 +158,7 @@ grips, active destinations, archive marks and destructive staging.
 
 ## What is stored locally
 
-`re:v1:saved`, `re:v1:plans`, `re:v1:projects`, `re:v1:preferences`.
+`re:v1:saved`, `re:v1:plans`, `re:v1:projects`, `re:v1:preferences`, `re:v1:removals`.
 Plan status changes are stored on the plan (`status`, `statusUpdatedAt`); the plan id, its
 project link and its tasks are never rewritten by a status drop.
 

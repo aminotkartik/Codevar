@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useRE } from '../../context/REContext'
-import { Check, Info, Close } from './Icons'
+import { useRouter } from '../../app/router'
+import { Check, Info, Close, Restore } from './Icons'
 
 /**
  * Toast viewport — brief notifications with a polite live region so screen
@@ -8,6 +9,7 @@ import { Check, Info, Close } from './Icons'
  */
 export function ToastViewport() {
   const { toasts, dismissToast } = useRE()
+  const { navigate } = useRouter()
 
   useEffect(() => {
     const timers = toasts.map((toast) =>
@@ -30,6 +32,20 @@ export function ToastViewport() {
             )}
           </span>
           <span className="toast__text">{toast.text}</span>
+          {toast.action ? (
+            <button
+              type="button"
+              className="toast__action"
+              onClick={() => {
+                // Reveals the receipt card. It never restores anything itself.
+                navigate(toast.action.to)
+                dismissToast(toast.id)
+              }}
+            >
+              <Restore width={13} height={13} aria-hidden="true" />
+              {toast.action.label}
+            </button>
+          ) : null}
           <button
             type="button"
             className="icon-btn icon-btn--sm"

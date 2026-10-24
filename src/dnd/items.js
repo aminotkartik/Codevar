@@ -101,6 +101,23 @@ export function pendingItem(removal) {
   }
 }
 
+/**
+ * A receipt card. `restorable` and `expired` are computed from live state so
+ * the zone and the dispatcher agree: a drop that cannot work is never offered.
+ */
+export function removalItem(receipt, { restorable = true, expired = false } = {}) {
+  return {
+    type: ITEM.RECEIPT,
+    id: `receipt-${receipt.id}`,
+    removalId: receipt.id,
+    kind: receipt.kind,
+    label: receipt.label,
+    meta: expired ? 'Snapshot expired' : restorable ? 'Drop to restore' : 'Cannot be restored',
+    restorable,
+    expired,
+  }
+}
+
 export function demoDataItem() {
   return {
     type: ITEM.DEMO_DATA,

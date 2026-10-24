@@ -7,6 +7,7 @@ export const STORAGE_KEYS = {
   saved: 're:v1:saved',
   plans: 're:v1:plans',
   projects: 're:v1:projects',
+  removals: 're:v1:removals',
   preferences: 're:v1:preferences',
 }
 

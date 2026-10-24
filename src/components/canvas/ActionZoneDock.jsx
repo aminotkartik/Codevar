@@ -9,6 +9,7 @@ import {
   restingZoneIds,
   zonesForItem,
 } from '../../dnd/zones'
+import { validateRestore } from '../../utils/removals'
 import { Portal } from '../ui/Portal'
 import { ActionZone } from './ActionZone'
 import { ChevronDown, Grip } from '../ui/Icons'
@@ -24,7 +25,8 @@ import { ChevronDown, Grip } from '../ui/Icons'
 export function ActionZoneDock() {
   const { active } = useDndContext()
   const { pathname } = useRouter()
-  const { composer, pendingRemoval, prefs } = useRE()
+  const { composer, pendingRemoval, prefs, removals, saved, plans, projectsById, projectsBySlug } =
+    useRE()
   const [expanded, setExpanded] = useState(false)
 
   if (!prefs.onboarded) return null
@@ -32,9 +34,14 @@ export function ActionZoneDock() {
 
   const activeItem = active?.data?.current?.item || null
   const compatibleIds = activeItem ? zonesForItem(activeItem).map((zone) => zone.id) : null
+  // Only receipts that could actually be written back earn a Restore zone.
+  const restorableCount = removals.filter(
+    (receipt) => validateRestore(receipt, { saved, plans, projectsById, projectsBySlug }).ok,
+  ).length
   const restingIds = restingZoneIds(pathname, {
     composerOpen: composer?.kind,
     pendingRemoval: Boolean(pendingRemoval),
+    restorable: restorableCount,
   })
   const zoneIds = compatibleIds ?? (expanded ? ACTION_ZONES.map((zone) => zone.id) : restingIds)
 
@@ -49,6 +56,9 @@ export function ActionZoneDock() {
   else if (pathname === '/explore') screenNote = 'Save, offer help or propose stewardship for an archive entry.'
   else if (pathname === '/submit') screenNote = 'Publish your completed draft card into the local archive.'
   else if (pathname.startsWith('/projects/')) screenNote = 'Drag the project card above into a zone.'
+  if (pathname === '/desk' && restorableCount > 0 && !pendingRemoval) {
+    screenNote += ` ${restorableCount} removal${restorableCount === 1 ? '' : 's'} can still be restored.`
+  }
   if (pendingRemoval) screenNote += ' A removal is waiting for confirmation.'
   if (composer?.kind === 'edit-plan') screenNote = 'Drop the edited plan card into Update plan.'
 

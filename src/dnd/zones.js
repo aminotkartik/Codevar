@@ -18,6 +18,7 @@ export const ITEM = {
   DRAFT: 'project-draft',
   TASK: 'task',
   PENDING: 'pending-removal',
+  RECEIPT: 'removal-receipt',
   DEMO_DATA: 'demo-data',
 }
 
@@ -32,6 +33,7 @@ export const ITEM_LABELS = {
   [ITEM.DRAFT]: 'Project draft',
   [ITEM.TASK]: 'Continuation task',
   [ITEM.PENDING]: 'Pending removal',
+  [ITEM.RECEIPT]: 'Removal receipt',
   [ITEM.DEMO_DATA]: 'Demo records',
 }
 
@@ -51,6 +53,7 @@ export const ZONE = {
   COMPLETED: 'completed',
   REOPEN: 'reopen-task',
   CONFIRM_REMOVAL: 'confirm-removal',
+  RESTORE: 'restore-records',
   RESET: 'reset-demo',
 }
 
@@ -216,9 +219,23 @@ export const ACTION_ZONES = [
     shortLabel: 'Confirm',
     accepts: [ITEM.PENDING],
     itemHint: 'Pending removal card',
-    description: 'The second step. Removes exactly the item named on the card.',
+    description: 'The second step. Removes exactly the item named on the card, and keeps a receipt.',
     acceptsLabel: 'Pending removal cards',
     tone: 'danger',
+  },
+  /* ---- Recovery -------------------------------------------------------
+     Removal is reversible only through this zone: drop the receipt the
+     removal produced and the snapshot is written back, IDs intact. */
+  {
+    id: ZONE.RESTORE,
+    label: 'Restore',
+    shortLabel: 'Restore',
+    accepts: [ITEM.RECEIPT],
+    itemHint: 'Removal receipt',
+    group: 'recovery',
+    description: 'Drop a receipt from Recently removed to write that record back exactly as it was.',
+    acceptsLabel: 'Live removal receipts',
+    tone: 'paper',
   },
   {
     id: ZONE.RESET,
@@ -277,6 +294,13 @@ export function zoneAccepts(zoneId, item) {
     case ZONE.STATUS_WORKING:
     case ZONE.STATUS_ARCHIVED:
       return item.type === ITEM.PLAN && Boolean(item.planId) && item.status !== zone.statusId
+    case ZONE.RESTORE:
+      return (
+        item.type === ITEM.RECEIPT &&
+        Boolean(item.removalId) &&
+        item.restorable !== false &&
+        item.expired !== true
+      )
     default:
       return true
   }
@@ -292,7 +316,10 @@ export function zonesForItem(item) {
 }
 
 /** The zones worth showing at rest, per route. */
-export function restingZoneIds(pathname, { composerOpen = false, pendingRemoval = false } = {}) {
+export function restingZoneIds(
+  pathname,
+  { composerOpen = false, pendingRemoval = false, restorable = 0 } = {},
+) {
   if (pendingRemoval) return [ZONE.CONFIRM_REMOVAL]
 
   if (composerOpen) {
@@ -305,6 +332,8 @@ export function restingZoneIds(pathname, { composerOpen = false, pendingRemoval 
       ZONE.REMOVE,
       ZONE.COMPLETED,
       ZONE.REOPEN,
+      // Only offered when there is genuinely something to restore.
+      ...(restorable > 0 ? [ZONE.RESTORE] : []),
     ]
   }
   if (pathname === '/submit') return [ZONE.PUBLISH]
@@ -329,6 +358,8 @@ export function rejectionMessage(zoneId, item) {
   if (zoneId === ZONE.REOPEN) return 'That task is already open, so there is nothing to reopen.'
   if (zoneId === ZONE.DISCARD) return 'That card cannot be discarded here. Only projects you created locally can be discarded.'
   if (zoneId === ZONE.CONFIRM_REMOVAL) return 'There is no matching pending removal, so nothing was deleted.'
+  if (zoneId === ZONE.RESTORE)
+    return 'This receipt cannot be restored — it may have expired, already been used, or its records may already be back.'
 
   if (item.type === ITEM.PROJECT) {
     return `This project cannot go into “${zone.label}”. Try Save, Offer help, or Take stewardship.`

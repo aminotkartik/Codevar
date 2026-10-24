@@ -1,8 +1,15 @@
-import { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { SEED_PROJECTS } from '../data/projects'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import { STORAGE_KEYS } from '../utils/storage'
 import { makeId, nextArchiveId, slugify, uniqueSlug } from '../utils/projectIdentifiers'
+import {
+  REMOVAL_TTL_HOURS,
+  describeRemoval,
+  makeRemovalReceipt,
+  pruneRemovals,
+  validateRestore,
+} from '../utils/removals'
 import {
   ZONE,
   ITEM,
@@ -136,10 +143,13 @@ function normalisePlan(raw) {
   }
 }
 
+const clone = (value) => JSON.parse(JSON.stringify(value))
+
 export function REProvider({ children }) {
   const [savedRaw, setSaved] = useLocalStorage(STORAGE_KEYS.saved, [])
   const [plansRaw, setPlans] = useLocalStorage(STORAGE_KEYS.plans, [])
   const [localProjectsRaw, setLocalProjects] = useLocalStorage(STORAGE_KEYS.projects, [])
+  const [removalsRaw, setRemovals] = useLocalStorage(STORAGE_KEYS.removals, [])
   const [prefsRaw, setPrefs] = useLocalStorage(STORAGE_KEYS.preferences, {
     onboarded: false,
     categories: [],
@@ -183,6 +193,27 @@ export function REProvider({ children }) {
     [prefsRaw],
   )
 
+  // ---- removal receipts -------------------------------------------------
+  // Expired or malformed receipts are dropped on read, so the desk can never
+  // offer a restore whose snapshot is gone. A slow tick keeps the countdown
+  // honest on a desk that is left open across the window.
+  const [clockNow, setClockNow] = useState(() => Date.now())
+
+  useEffect(() => {
+    if (!Array.isArray(removalsRaw) || removalsRaw.length === 0) return undefined
+    const interval = window.setInterval(() => setClockNow(Date.now()), 60000)
+    return () => window.clearInterval(interval)
+  }, [removalsRaw])
+
+  const removals = useMemo(() => pruneRemovals(removalsRaw, clockNow), [removalsRaw, clockNow])
+
+  useEffect(() => {
+    const stored = Array.isArray(removalsRaw) ? removalsRaw : []
+    if (removals.length === stored.length) return
+    // Rewrite only when something actually aged out, so this cannot loop.
+    setRemovals(removals)
+  }, [removals, removalsRaw, setRemovals])
+
   // ---- data -------------------------------------------------------------
   const projects = useMemo(() => [...localProjects, ...SEED_PROJECTS], [localProjects])
 
@@ -214,9 +245,10 @@ export function REProvider({ children }) {
   }, [])
 
   const pushToast = useCallback(
-    (text, tone = 'info') => {
+    (text, tone = 'info', action = null) => {
       const id = makeId('toast')
-      setToasts((prev) => [...prev.slice(-2), { id, text, tone }])
+      // `action` may only reveal the receipt card — never restore by itself.
+      setToasts((prev) => [...prev.slice(-2), { id, text, tone, action }])
       announce(text)
       return id
     },
@@ -259,6 +291,15 @@ export function REProvider({ children }) {
       setPlans((prev) => asPlansArray(prev).filter((p) => p.id !== id))
     },
     [setPlans],
+  )
+
+  // Receipts are capped and pruned as they are written, so storage can never
+  // accumulate snapshots nobody can act on.
+  const recordReceipt = useCallback(
+    (receipt) => {
+      setRemovals((prev) => pruneRemovals([receipt, ...(Array.isArray(prev) ? prev : [])]))
+    },
+    [setRemovals],
   )
 
   const setTaskDone = useCallback(
@@ -343,6 +384,7 @@ export function REProvider({ children }) {
     setSaved([])
     setPlans([])
     setLocalProjects([])
+    setRemovals([])
     setPrefs({
       onboarded: true,
       categories: [],
@@ -352,7 +394,7 @@ export function REProvider({ children }) {
     setComposer(null)
     setPendingRemoval(null)
     setLastPublished(null)
-  }, [setSaved, setPlans, setLocalProjects, setPrefs])
+  }, [setSaved, setPlans, setLocalProjects, setRemovals, setPrefs])
 
   // ======================================================================
   // THE DISPATCHER — a drop is the only way a primary action happens.
@@ -545,20 +587,154 @@ export function REProvider({ children }) {
             return reject('There is no matching pending removal, so nothing was deleted.')
           }
           const removal = pendingRemoval
+          const now = Date.now()
+
+          // Snapshot first, delete second. A receipt is the only record of what
+          // was here, so it is built from live state and written before the
+          // removal, never reconstructed afterwards.
           if (removal.kind === 'saved') {
+            const project = projectsById.get(removal.targetId)
+            const receipt = makeRemovalReceipt({
+              id: makeId('removal'),
+              kind: 'saved',
+              label: project?.title || removal.label,
+              snapshot: {
+                projectId: removal.targetId,
+                projectTitle: project?.title || removal.label,
+              },
+              now,
+            })
             removeSavedProject(removal.targetId)
-          } else if (removal.kind === 'plan') {
-            removePlan(removal.targetId)
-          } else if (removal.kind === 'project') {
-            removeLocalProject(removal.targetId)
-          } else if (removal.kind === 'demo') {
-            resetDemo()
+            setPendingRemoval(null)
+            recordReceipt(receipt)
+            const message = `Removed “${receipt.label}” from your desk. The archive entry is untouched. Restorable for ${REMOVAL_TTL_HOURS} hours from Recently removed.`
+            pushToast(message, 'info', { label: 'Show restore card', to: '/desk?tab=removed' })
+            return { ok: true, message, receipt }
           }
+
+          if (removal.kind === 'plan') {
+            const plan = plans.find((entry) => entry.id === removal.targetId)
+            if (!plan) {
+              setPendingRemoval(null)
+              return reject('That plan is no longer on your desk, so nothing was removed.')
+            }
+            const receipt = makeRemovalReceipt({
+              id: makeId('removal'),
+              kind: 'plan',
+              label: plan.projectTitle,
+              snapshot: { plan: clone(plan) },
+              now,
+            })
+            removePlan(plan.id)
+            setPendingRemoval(null)
+            recordReceipt(receipt)
+            const message = `Removed ${describeRemoval(receipt)} from your desk. The project stays in the archive. Restorable for ${REMOVAL_TTL_HOURS} hours from Recently removed.`
+            pushToast(message, 'info', { label: 'Show restore card', to: '/desk?tab=removed' })
+            return { ok: true, message, receipt }
+          }
+
+          if (removal.kind === 'project') {
+            const project = localProjects.find((entry) => entry.id === removal.targetId)
+            if (!project) {
+              setPendingRemoval(null)
+              return reject('That project is no longer in this browser, so nothing was removed.')
+            }
+            const relatedPlans = plans.filter((plan) => plan.projectId === project.id)
+            const receipt = makeRemovalReceipt({
+              id: makeId('removal'),
+              kind: 'project',
+              label: project.title,
+              snapshot: {
+                project: clone(project),
+                plans: relatedPlans.map(clone),
+                wasSaved: saved.includes(project.id),
+              },
+              now,
+            })
+            removeLocalProject(project.id)
+            setPendingRemoval(null)
+            recordReceipt(receipt)
+            const planCount = relatedPlans.length
+            const message = `Discarded “${receipt.label}”${
+              planCount > 0 ? ` and ${planCount} revival plan${planCount === 1 ? '' : 's'}` : ''
+            }. Restorable for ${REMOVAL_TTL_HOURS} hours from Recently removed.`
+            pushToast(message, 'info', { label: 'Show restore card', to: '/desk?tab=removed' })
+            return { ok: true, message, receipt }
+          }
+
+          // Demo reset wipes every key including the receipts: it is the one
+          // destructive action that is deliberately not reversible.
+          resetDemo()
           setPendingRemoval(null)
           const message =
-            removal.kind === 'demo'
-              ? 'Demo data cleared. Only RE’s local storage keys were reset.'
-              : `Removed “${removal.label}” from your desk. The archive project is untouched.`
+            'Demo data cleared. Only RE’s local storage keys were reset, including removal receipts.'
+          pushToast(message)
+          return { ok: true, message }
+        }
+
+        /* ---- Restore: recovery is a drop, never a button -------------- */
+        case ZONE.RESTORE: {
+          const receipt = removals.find((entry) => entry.id === item.removalId)
+          if (!receipt) {
+            return reject('That receipt is no longer available, so nothing was restored.')
+          }
+          const now = Date.now()
+          const verdict = validateRestore(receipt, {
+            now,
+            saved,
+            plans,
+            projectsById,
+            projectsBySlug,
+          })
+          if (!verdict.ok) return reject(verdict.reason)
+
+          let message = ''
+          if (receipt.kind === 'saved') {
+            const { projectId } = receipt.snapshot
+            setSaved((prev) => [projectId, ...asStringArray(prev).filter((id) => id !== projectId)])
+            message = `Restored “${receipt.label}” to your saved list.`
+          } else if (receipt.kind === 'plan') {
+            const plan = receipt.snapshot.plan
+            setPlans((prev) => [
+              plan,
+              ...asPlansArray(prev).filter((entry) => entry.id !== plan.id),
+            ])
+            message = `Restored the revival plan for “${receipt.label}” with its original ID and status.`
+          } else {
+            const project = receipt.snapshot.project
+            const returning = Array.isArray(receipt.snapshot.plans) ? receipt.snapshot.plans : []
+            setLocalProjects((prev) => [
+              project,
+              ...asProjectsArray(prev).filter(
+                (entry) => entry.id !== project.id && entry.slug !== project.slug,
+              ),
+            ])
+            if (returning.length > 0) {
+              setPlans((prev) => {
+                const existing = asPlansArray(prev)
+                const ids = new Set(existing.map((entry) => entry.id))
+                const fresh = returning.filter((entry) => !ids.has(entry.id))
+                return [...fresh, ...existing]
+              })
+            }
+            if (receipt.snapshot.wasSaved) {
+              setSaved((prev) => [
+                project.id,
+                ...asStringArray(prev).filter((id) => id !== project.id),
+              ])
+            }
+            message = `Restored “${receipt.label}”${
+              returning.length > 0
+                ? ` and ${returning.length} revival plan${returning.length === 1 ? '' : 's'}`
+                : ''
+            } with their original IDs.`
+          }
+
+          // Consuming the receipt is what makes restore idempotent: a second
+          // drop of the same card finds nothing and changes nothing.
+          setRemovals((prev) =>
+            (Array.isArray(prev) ? prev : []).filter((entry) => entry.id !== receipt.id),
+          )
           pushToast(message)
           return { ok: true, message }
         }
@@ -584,11 +760,15 @@ export function REProvider({ children }) {
     [
       addLocalProject,
       localProjectIds,
+      localProjects,
       openComposer,
       pendingRemoval,
       plans,
       projectsById,
+      projectsBySlug,
       pushToast,
+      recordReceipt,
+      removals,
       removeLocalProject,
       removePlan,
       removeSavedProject,
@@ -596,6 +776,7 @@ export function REProvider({ children }) {
       saveProject,
       saved,
       setPlans,
+      setRemovals,
       setTaskDone,
       updatePlan,
     ],
@@ -612,6 +793,7 @@ export function REProvider({ children }) {
       plans,
       localProjects,
       prefs,
+      removals,
       // derived
       isSaved,
       // canvas state
@@ -643,6 +825,7 @@ export function REProvider({ children }) {
       plans,
       localProjects,
       prefs,
+      removals,
       isSaved,
       composer,
       pendingRemoval,

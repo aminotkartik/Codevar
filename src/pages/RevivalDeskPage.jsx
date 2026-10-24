@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter, Link } from '../app/router'
 import { useRE } from '../context/REContext'
 import { RevivalPlanCard } from '../components/revival/RevivalPlanCard'
+import { RemovalReceiptCard } from '../components/canvas/RemovalReceiptCard'
 import { ProjectDataCard } from '../components/canvas/ProjectDataCard'
 import { DraggableDataCard } from '../components/canvas/DraggableDataCard'
 import { ActionZone } from '../components/canvas/ActionZone'
@@ -9,19 +10,22 @@ import { EmptyState } from '../components/ui/EmptyState'
 import { demoDataItem } from '../dnd/items'
 import { ZONE } from '../dnd/zones'
 import { PLAN_STATUSES } from '../context/REContext'
-import { ArrowUpRight, Plus, Trash, Grip } from '../components/ui/Icons'
+import { REMOVAL_TTL_HOURS, validateRestore } from '../utils/removals'
+import { ArrowUpRight, Plus, Restore, Trash, Grip } from '../components/ui/Icons'
 
 const TABS = [
   { id: 'saved', label: 'Saved projects' },
   { id: 'plans', label: 'My revival plans' },
   { id: 'mine', label: 'My projects' },
+  { id: 'removed', label: 'Recently removed' },
 ]
 
 const TAB_IDS = TABS.map((t) => t.id)
 
 export function RevivalDeskPage() {
   const { navigate, params } = useRouter()
-  const { projects, plans, localProjects, saved, prefs } = useRE()
+  const { projects, projectsById, projectsBySlug, plans, localProjects, saved, prefs, removals } =
+    useRE()
 
   // Sections are addressable so a view can be linked or revisited.
   const requestedTab = params.get('tab')
@@ -65,6 +69,18 @@ export function RevivalDeskPage() {
 
   const activePlans = useMemo(() => plans.filter((p) => p.status !== 'archived'), [plans])
   const archivedPlans = useMemo(() => plans.filter((p) => p.status === 'archived'), [plans])
+
+  // One verdict per receipt, so the card, the count and the offer to restore
+  // can never disagree about whether a snapshot is still usable.
+  const receiptVerdicts = useMemo(
+    () =>
+      removals.map((receipt) => ({
+        receipt,
+        verdict: validateRestore(receipt, { saved, plans, projectsById, projectsBySlug }),
+      })),
+    [removals, saved, plans, projectsById, projectsBySlug],
+  )
+  const restorableCount = receiptVerdicts.filter((entry) => entry.verdict.ok).length
 
   const taskStats = useMemo(() => {
     let total = 0
@@ -115,7 +131,9 @@ export function RevivalDeskPage() {
                     ? savedProjects.length
                     : item.id === 'plans'
                       ? plans.length
-                      : localProjects.length
+                      : item.id === 'removed'
+                        ? removals.length
+                        : localProjects.length
                 const selected = tab === item.id
                 return (
                   <button
@@ -232,6 +250,60 @@ export function RevivalDeskPage() {
                   ))}
                 </div>
               </section>
+            )}
+
+            {tab === 'removed' && (
+              <>
+                <div className="receipt-policy">
+                  <span className="receipt-policy__icon" aria-hidden="true">
+                    <Restore width={14} height={14} />
+                  </span>
+                  <div>
+                    <p className="receipt-policy__title">Removals are reversible for {REMOVAL_TTL_HOURS} hours.</p>
+                    <p className="receipt-policy__text">
+                      Confirming a removal keeps a snapshot of exactly what left your desk — the
+                      record, its original ID, and anything that went with it. Drag a receipt into{' '}
+                      <b>Restore</b> to write it back. After {REMOVAL_TTL_HOURS} hours, or once five
+                      newer removals arrive, the snapshot is deleted and the card stops offering a
+                      drop.
+                    </p>
+                  </div>
+                </div>
+
+                {removals.length > 0 ? (
+                  <>
+                    <div className="desk-list">
+                      {receiptVerdicts.map(({ receipt, verdict }) => (
+                        <RemovalReceiptCard
+                          key={receipt.id}
+                          receipt={receipt}
+                          verdict={verdict}
+                        />
+                      ))}
+                    </div>
+                    {restorableCount > 0 ? (
+                      <div className="receipt-restore">
+                        <ActionZone zoneId={ZONE.RESTORE} variant="inline" />
+                      </div>
+                    ) : (
+                      <p className="receipt-policy__text receipt-restore">
+                        None of these can be restored right now — the receipts above say why.
+                      </p>
+                    )}
+                  </>
+                ) : (
+                  <EmptyState
+                    title="Nothing recently removed."
+                    text={`When you remove a saved project, a revival plan, or a project you published, its receipt waits here for ${REMOVAL_TTL_HOURS} hours.`}
+                    action={
+                      <Link to="/explore" className="btn btn--primary">
+                        Browse the archive
+                        <ArrowUpRight width={15} height={15} />
+                      </Link>
+                    }
+                  />
+                )}
+              </>
             )}
 
             {tab === 'mine' &&
