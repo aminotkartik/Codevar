@@ -4,7 +4,7 @@ import {
   DragOverlay,
   KeyboardSensor,
   MeasuringStrategy,
-  PointerSensor,
+  MouseSensor,
   TouchSensor,
   pointerWithin,
   rectIntersection,
@@ -117,9 +117,18 @@ export function CanvasDndProvider({ children }) {
   const { performDrop } = useRE()
   const [activeItem, setActiveItem] = useState(null)
 
+  /**
+   * Mouse and touch are deliberately separate sensors.
+   *
+   * A pointer sensor also listens to touch, and it claimed the gesture on the
+   * first 6px of movement — which meant a page scroll that began on a grip
+   * could start a drag, and the touch long-press never got a chance to run.
+   * MouseSensor only reacts to a real mouse; TouchSensor only lifts the card
+   * after a deliberate press-and-hold, so scrolling stays scrolling.
+   */
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 180, tolerance: 8 } }),
+    useSensor(MouseSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 220, tolerance: 10 } }),
     useSensor(KeyboardSensor, { coordinateGetter: zoneKeyboardCoordinates }),
   )
 

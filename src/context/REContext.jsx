@@ -6,7 +6,9 @@ import { makeId, nextArchiveId, slugify, uniqueSlug } from '../utils/projectIden
 import {
   ZONE,
   ITEM,
+  STATUS_ZONE_IDS,
   baseZoneId,
+  getZone,
   rejectionMessage,
   zoneAccepts,
 } from '../dnd/zones'
@@ -291,11 +293,6 @@ export function REProvider({ children }) {
     setLastPublished(null)
   }, [setSaved, setPlans, setLocalProjects, setPrefs])
 
-  const updatePlanStatus = useCallback(
-    (planId, status) => updatePlan(planId, { status }),
-    [updatePlan],
-  )
-
   // ======================================================================
   // THE DISPATCHER — a drop is the only way a primary action happens.
   // ======================================================================
@@ -403,6 +400,23 @@ export function REProvider({ children }) {
           })
           setComposer(null)
           const message = 'Plan updated locally. Its plan ID and project link are unchanged.'
+          pushToast(message)
+          return { ok: true, message }
+        }
+
+        /* ---- Zone J: plan status, committed by a drop ----------------- */
+        case ZONE.STATUS_DRAFTED:
+        case ZONE.STATUS_PLANNING:
+        case ZONE.STATUS_WORKING:
+        case ZONE.STATUS_ARCHIVED: {
+          const zone = getZone(zoneId)
+          const plan = plans.find((p) => p.id === item.planId)
+          if (!plan) return reject('That plan is no longer on your desk, so its status was not changed.')
+          if (plan.status === zone.statusId) {
+            return reject(`“${plan.projectTitle}” is already marked as ${zone.label.toLowerCase()}.`)
+          }
+          updatePlan(plan.id, { status: zone.statusId, statusUpdatedAt: new Date().toISOString() })
+          const message = `“${plan.projectTitle}” marked as ${zone.label.toLowerCase()}.`
           pushToast(message)
           return { ok: true, message }
         }
@@ -543,14 +557,10 @@ export function REProvider({ children }) {
       clearPendingRemoval,
       // dispatch
       performDrop,
-      // non-primary helpers
-      updatePlanStatus,
-      updatePlan,
-      removePlan,
+      // Preferences only — every primary mutation stays inside performDrop.
       completeOnboarding,
       completeTutorial,
       resetOnboarding,
-      resetDemo,
       // feedback
       toasts,
       pushToast,
@@ -575,13 +585,9 @@ export function REProvider({ children }) {
       closeComposer,
       clearPendingRemoval,
       performDrop,
-      updatePlanStatus,
-      updatePlan,
-      removePlan,
       completeOnboarding,
       completeTutorial,
       resetOnboarding,
-      resetDemo,
       toasts,
       pushToast,
       dismissToast,

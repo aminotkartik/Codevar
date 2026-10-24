@@ -19,6 +19,32 @@
   --color-dark-muted: #9aa095;
   --color-dark-paper: #30362f;
 
+  /* ---- Paper stock: the material system ---------------------------------
+     Four weights of paper, from the table surface up to the featured
+     dossier. Everything else is ink, rule, or terracotta. */
+  --paper-ivory: #fffefa;
+  --paper-warm: #fbf7ee;
+  --paper-kraft: #eee7d8;
+  --paper-kraft-deep: #e4dac6;
+  --paper-sepia: #6e6552;
+  --paper-edge: rgba(78, 66, 44, 0.1);
+  --paper-rule: #ded8c8;
+
+  /* Extremely subtle paper tooth — never visible as a pattern, only as warmth. */
+  --paper-grain:
+    radial-gradient(circle at 18% 22%, rgba(126, 105, 70, 0.035) 0 1px, transparent 1px),
+    radial-gradient(circle at 72% 64%, rgba(126, 105, 70, 0.028) 0 1px, transparent 1px),
+    radial-gradient(circle at 42% 82%, rgba(126, 105, 70, 0.022) 0 1px, transparent 1px);
+  --paper-grain-size: 5px 5px, 7px 7px, 11px 11px;
+
+  /* Paper elevation: a crisp lip plus a diffused lift, never a glow. */
+  --shadow-paper-1: 0 1px 0 rgba(255, 255, 255, 0.7) inset,
+    0 1px 1px rgba(78, 66, 44, 0.05), 0 6px 14px -10px rgba(78, 66, 44, 0.35);
+  --shadow-paper-2: 0 1px 0 rgba(255, 255, 255, 0.7) inset,
+    0 2px 3px rgba(78, 66, 44, 0.06), 0 18px 32px -20px rgba(78, 66, 44, 0.45);
+  --shadow-paper-3: 0 1px 0 rgba(255, 255, 255, 0.6) inset,
+    0 6px 12px rgba(78, 66, 44, 0.09), 0 34px 60px -30px rgba(78, 66, 44, 0.4);
+
   /* semantic aliases */
   --bg: var(--color-canvas);
   --surface: var(--color-paper);
@@ -60,6 +86,7 @@
   --tracking-tight: -0.022em;
   --tracking-display: -0.03em;
   --tracking-label: 0.13em;
+  --tracking-stamp: 0.18em;
 
   /* ---- Spacing scale: 4 8 12 16 24 32 48 64 96 ------------------------- */
   --sp-1: 4px;
@@ -79,9 +106,11 @@
   --header-h: 68px;
 
   /* ---- Radius & elevation ---------------------------------------------- */
-  --r-sm: 6px;
-  --r-md: 10px;
-  --r-lg: 14px;
+  --r-sm: 4px;
+  --r-md: 7px;
+  --r-lg: 10px;
+  --r-card: 5px;
+  --r-tab: 3px;
 
   --shadow-1: 0 1px 2px rgba(32, 35, 31, 0.05);
   --shadow-2: 0 2px 5px rgba(32, 35, 31, 0.05), 0 14px 30px rgba(32, 35, 31, 0.06);

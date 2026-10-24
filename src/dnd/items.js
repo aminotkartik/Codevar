@@ -29,13 +29,16 @@ export function projectItem(project, origin = 'archive') {
   }
 }
 
-export function planItem(plan) {
+export function planItem(plan, statusLabel) {
   return {
     type: ITEM.PLAN,
     id: plan.id,
     planId: plan.id,
+    status: plan.status,
     label: plan.projectTitle,
-    meta: `${plan.type === 'stewardship' ? 'Stewardship proposal' : 'Contribution intent'} · ${plan.status}`,
+    meta: `${plan.type === 'stewardship' ? 'Stewardship proposal' : 'Contribution intent'} · ${
+      statusLabel || plan.status
+    }`,
   }
 }
 

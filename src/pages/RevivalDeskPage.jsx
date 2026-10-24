@@ -8,6 +8,7 @@ import { ActionZone } from '../components/canvas/ActionZone'
 import { EmptyState } from '../components/ui/EmptyState'
 import { demoDataItem } from '../dnd/items'
 import { ZONE } from '../dnd/zones'
+import { PLAN_STATUSES } from '../context/REContext'
 import { ArrowUpRight, Plus, Trash, Grip } from '../components/ui/Icons'
 
 const TABS = [
@@ -63,12 +64,12 @@ export function RevivalDeskPage() {
           <div className="canvas-head__legend" aria-label="Desk actions">
             <span className="canvas-head__legend-item">
               <Grip width={13} height={13} aria-hidden="true" />
-              Drag to remove
+              Drag to change
             </span>
             <span className="canvas-head__legend-arrow" aria-hidden="true">
               →
             </span>
-            <span className="canvas-head__legend-item">Confirm with a second drop</span>
+            <span className="canvas-head__legend-item">Drop into the tray</span>
           </div>
         </header>
 
@@ -129,6 +130,23 @@ export function RevivalDeskPage() {
                   }
                 />
               ))}
+
+            {tab === 'plans' && (
+              <div className="status-legend" aria-hidden="false">
+                <span className="mono">Plan status</span>
+                <div className="status-legend__items">
+                  {PLAN_STATUSES.map((status) => (
+                    <span className="status-legend__item" key={status.id} data-status={status.id}>
+                      <span className="status-mark__dot" aria-hidden="true" />
+                      {status.label}
+                    </span>
+                  ))}
+                </div>
+                <span className="status-legend__note">
+                  Drag a plan card onto a status tab in the tray below. No menu, no switch.
+                </span>
+              </div>
+            )}
 
             {tab === 'plans' &&
               (activePlans.length > 0 ? (
@@ -234,10 +252,11 @@ export function RevivalDeskPage() {
                 <span className="panel__title">How the desk changes</span>
               </div>
               <ul className="desk-rules">
+                <li>Drag a plan onto a status tab to change its local status.</li>
+                <li>Drag a task slip onto Completed or Reopen task — there is no checkbox.</li>
                 <li>Removing a saved project leaves the archive entry untouched.</li>
                 <li>Removing a plan never deletes its project.</li>
                 <li>Seed projects cannot be discarded from here.</li>
-                <li>Tasks move with the dock, not with checkboxes.</li>
               </ul>
             </div>
 

@@ -37,6 +37,10 @@ export const ITEM_LABELS = {
 
 export const ZONE = {
   SAVE: 'save-to-desk',
+  STATUS_DRAFTED: 'status-drafted',
+  STATUS_PLANNING: 'status-planning',
+  STATUS_WORKING: 'status-working',
+  STATUS_ARCHIVED: 'status-archived',
   HELP: 'offer-help',
   STEWARDSHIP: 'take-stewardship',
   ADD_PLAN: 'add-plan-to-desk',
@@ -83,6 +87,57 @@ export const ACTION_ZONES = [
     itemHint: 'Archive project',
     description: 'Prepare a proposal to continue the work, subject to the creator agreeing.',
     acceptsLabel: 'Unfinished archives',
+    tone: 'paper',
+  },
+  /* ---- Plan status destinations (Zone J) -------------------------------
+     A revival plan's persistent status is changed by dropping the plan card
+     into one of these. The card itself never mutates state on click. */
+  {
+    id: ZONE.STATUS_DRAFTED,
+    label: 'Drafted',
+    shortLabel: 'Drafted',
+    statusId: 'drafted',
+    group: 'status',
+    accepts: [ITEM.PLAN],
+    itemHint: 'Revival plan',
+    description: 'Mark this plan as drafted — captured, not yet being planned.',
+    acceptsLabel: 'Plans only',
+    tone: 'paper',
+  },
+  {
+    id: ZONE.STATUS_PLANNING,
+    label: 'Planning',
+    shortLabel: 'Planning',
+    statusId: 'planning',
+    group: 'status',
+    accepts: [ITEM.PLAN],
+    itemHint: 'Revival plan',
+    description: 'Mark this plan as planning — you are working out the next steps.',
+    acceptsLabel: 'Plans only',
+    tone: 'paper',
+  },
+  {
+    id: ZONE.STATUS_WORKING,
+    label: 'Working locally',
+    shortLabel: 'Working',
+    statusId: 'working',
+    group: 'status',
+    accepts: [ITEM.PLAN],
+    itemHint: 'Revival plan',
+    description: 'Mark this plan as in progress in your own workspace.',
+    acceptsLabel: 'Plans only',
+    tone: 'paper',
+  },
+  {
+    id: ZONE.STATUS_ARCHIVED,
+    label: 'Archived',
+    shortLabel: 'Archive',
+    statusId: 'archived',
+    group: 'status',
+    accepts: [ITEM.PLAN],
+    itemHint: 'Revival plan',
+    description: 'Move this plan into the archived shelf of your desk.',
+    acceptsLabel: 'Plans only',
     tone: 'paper',
   },
   {
@@ -217,10 +272,19 @@ export function zoneAccepts(zoneId, item) {
       return Boolean(item.valid)
     case ZONE.UPDATE_PLAN:
       return Boolean(item.valid)
+    case ZONE.STATUS_DRAFTED:
+    case ZONE.STATUS_PLANNING:
+    case ZONE.STATUS_WORKING:
+    case ZONE.STATUS_ARCHIVED:
+      return item.type === ITEM.PLAN && Boolean(item.planId) && item.status !== zone.statusId
     default:
       return true
   }
 }
+
+export const STATUS_ZONE_IDS = ACTION_ZONES.filter((zone) => zone.group === 'status').map(
+  (zone) => zone.id,
+)
 
 /** Zones that accept a given card, in registry order. */
 export function zonesForItem(item) {
@@ -236,7 +300,12 @@ export function restingZoneIds(pathname, { composerOpen = false, pendingRemoval 
   }
 
   if (pathname === '/desk') {
-    return [ZONE.REMOVE, ZONE.COMPLETED, ZONE.REOPEN]
+    return [
+      ...STATUS_ZONE_IDS,
+      ZONE.REMOVE,
+      ZONE.COMPLETED,
+      ZONE.REOPEN,
+    ]
   }
   if (pathname === '/submit') return [ZONE.PUBLISH]
   return [ZONE.SAVE, ZONE.HELP, ZONE.STEWARDSHIP]
@@ -252,6 +321,10 @@ export function rejectionMessage(zoneId, item) {
   if (zoneId === ZONE.UPDATE_PLAN) return 'These edits are not valid yet, so the plan was left as it was.'
   if (zoneId === ZONE.STEWARDSHIP)
     return 'This project is not open to stewardship, so no proposal was prepared.'
+  if (STATUS_ZONE_IDS.includes(zoneId)) {
+    const label = getZone(zoneId)?.label || 'that status'
+    return `This plan is already marked as ${label.toLowerCase()}, so nothing changed.`
+  }
   if (zoneId === ZONE.COMPLETED) return 'That task is already complete. Use Reopen task instead.'
   if (zoneId === ZONE.REOPEN) return 'That task is already open, so there is nothing to reopen.'
   if (zoneId === ZONE.DISCARD) return 'That card cannot be discarded here. Only projects you created locally can be discarded.'

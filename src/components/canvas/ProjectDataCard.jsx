@@ -22,6 +22,8 @@ export function ProjectDataCard({
   selected = false,
   onInspect,
   showCover = false,
+  ordinal,
+  sortKey,
 }) {
   const { isSaved } = useRE()
   const origin = variant === 'saved' ? 'saved' : variant === 'local' ? 'local' : 'archive'
@@ -33,6 +35,7 @@ export function ProjectDataCard({
       dragId={dragId}
       item={item}
       className={`project-data-card project-data-card--${variant}`}
+      selected={selected}
       gripLabel={`Drag ${project.title} — saved as ${archiveLabel(project)}`}
     >
       <div
@@ -41,6 +44,11 @@ export function ProjectDataCard({
         onPointerEnter={onInspect}
       >
         <div className="project-data-card__top">
+          {ordinal ? (
+            <span className="project-data-card__ordinal" aria-hidden="true">
+              {String(ordinal).padStart(2, '0')}
+            </span>
+          ) : null}
           <span className="project-data-card__archive">{archiveLabel(project)}</span>
           <span className="project-data-card__dot" aria-hidden="true">
             ·
@@ -97,6 +105,10 @@ export function ProjectDataCard({
           <span className="project-data-card__need-label">Needs</span>
           <span>{project.helpFocus}</span>
         </div>
+
+        {sortKey ? (
+          <span className="project-data-card__sortkey mono">{sortKey}</span>
+        ) : null}
 
         <div className="project-data-card__foot">
           <Link

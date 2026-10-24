@@ -1,11 +1,6 @@
 import { useId } from 'react'
 import { useDndContext, useDroppable } from '@dnd-kit/core'
-import {
-  getZone,
-  zoneAccepts,
-  zoneDroppableId,
-  ZONE,
-} from '../../dnd/zones'
+import { getZone, zoneAccepts, zoneDroppableId, ZONE } from '../../dnd/zones'
 import {
   ArchiveBox,
   ArrowLeft,
@@ -13,10 +8,11 @@ import {
   Check,
   Edit,
   HandoffArrow,
+  Layers,
+  Pen,
   Plus,
   Trash,
   Users,
-  Zone as ZoneIcon,
 } from '../ui/Icons'
 
 const ZONE_ICONS = {
@@ -24,7 +20,6 @@ const ZONE_ICONS = {
   [ZONE.HELP]: HandoffArrow,
   [ZONE.STEWARDSHIP]: Users,
   [ZONE.ADD_PLAN]: Plus,
-  [ZONE.PUBLISH]: ArchiveBox,
   [ZONE.UPDATE_PLAN]: Edit,
   [ZONE.REMOVE]: Trash,
   [ZONE.DISCARD]: Trash,
@@ -32,16 +27,20 @@ const ZONE_ICONS = {
   [ZONE.REOPEN]: ArrowLeft,
   [ZONE.CONFIRM_REMOVAL]: Check,
   [ZONE.RESET]: Trash,
+  [ZONE.STATUS_DRAFTED]: Pen,
+  [ZONE.STATUS_PLANNING]: Layers,
+  [ZONE.STATUS_WORKING]: HandoffArrow,
+  [ZONE.STATUS_ARCHIVED]: ArchiveBox,
 }
 
 /**
- * ActionZone — a named drop target.
+ * ActionZone — a named receiving area.
  *
- * It is deliberately not a button: the only way to activate it is to release
- * a compatible card over it. `data-over`, `data-compatible` and
- * `data-active` drive every visual state.
+ * It is deliberately not a button: the only way to activate it is to release a
+ * compatible card over it. `data-over`, `data-compatible` and `data-active`
+ * drive every visual state, so a drop target never looks like a control.
  */
-export function ActionZone({ zoneId, variant = 'dock', compact = false, className = '' }) {
+export function ActionZone({ zoneId, variant = 'dock' }) {
   const instanceId = useId()
   const zone = getZone(zoneId)
   const { active } = useDndContext()
@@ -56,15 +55,14 @@ export function ActionZone({ zoneId, variant = 'dock', compact = false, classNam
 
   if (!zone) return null
 
-  const Icon = ZONE_ICONS[zoneId] || ZoneIcon
+  const Icon = ZONE_ICONS[zoneId] || Plus
   const dropping = Boolean(isOver && activeItem && compatible)
+  const chip = variant === 'chip'
 
   return (
     <div
       ref={setNodeRef}
-      className={`action-zone action-zone--${variant}${compact ? ' action-zone--compact' : ''}${
-        className ? ` ${className}` : ''
-      }`}
+      className={`action-zone action-zone--${variant}${chip ? ' action-zone--chip' : ''}`}
       data-zone={zoneId}
       data-tone={zone.tone}
       data-active={activeItem ? 'true' : 'false'}
@@ -72,27 +70,34 @@ export function ActionZone({ zoneId, variant = 'dock', compact = false, classNam
       data-over={dropping ? 'true' : undefined}
       role="region"
       aria-label={`${zone.label}. ${zone.description}`}
+      title={chip ? `${zone.label} — ${zone.description}` : undefined}
     >
       <span className="action-zone__icon" aria-hidden="true">
-        <Icon width={16} height={16} />
+        <Icon width={chip ? 13 : 16} height={chip ? 13 : 16} />
       </span>
 
       <span className="action-zone__body">
-        <span className="action-zone__label">{zone.label}</span>
-        {!compact && (
-          <span className="action-zone__hint">
-            {activeItem && compatible
-              ? `Release “${activeItem.label}” to ${zone.label.toLowerCase()}.`
-              : zone.description}
-          </span>
+        <span className="action-zone__label">{chip ? zone.shortLabel || zone.label : zone.label}</span>
+        {!chip && (
+          <>
+            <span className="action-zone__hint">
+              {activeItem && compatible
+                ? `Release “${activeItem.label}” here.`
+                : zone.description}
+            </span>
+            <span className="action-zone__accepts">Accepts: {zone.acceptsLabel}</span>
+          </>
         )}
-        {!compact && <span className="action-zone__accepts">Accepts: {zone.acceptsLabel}</span>}
       </span>
 
-      {activeItem && !compatible && (
+      {dropping && (
+        <span className="action-zone__status action-zone__status--go">
+          {chip ? 'Drop' : 'Release to drop'}
+        </span>
+      )}
+      {!chip && activeItem && !compatible && (
         <span className="action-zone__status">Not this card</span>
       )}
-      {dropping && <span className="action-zone__status action-zone__status--go">Release to drop</span>}
     </div>
   )
 }

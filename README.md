@@ -20,6 +20,7 @@ other way.
 | Archive project | **Save to Revival Desk** | The project is added to your desk (idempotent). |
 | Archive project | **Offer to help** | A contribution composer opens, preselected to that project. |
 | Archive project | **Take stewardship** | A stewardship preparation panel opens (only for projects open to it). |
+| Revival plan card | **Drafted / Planning / Working / Archived** | The plan's local status changes. The card's status mark updates; there is no status menu. |
 | Contribution intent / stewardship proposal | **Add plan to desk** | A local revival plan is committed, with a continuation checklist. |
 | Valid project draft | **Publish to archive** | The project joins the local demo archive, Explore and My projects. |
 | Edited plan card | **Update plan** | The plan is updated, keeping its plan ID and project link. |
@@ -31,6 +32,24 @@ other way.
 
 The Action Zone dock is context-aware: at rest it offers the operations that make sense on the
 current screen, and during a drag it narrows to exactly the zones that accept the card in hand.
+
+## Discovery sorting
+
+Five deterministic, single-definition comparators in `src/utils/projectSorting.js`:
+
+| Option | Comparator |
+| --- | --- |
+| Curated / Featured | featured → priority desc → completion desc → archive id |
+| Recently Updated | `updatedAt` desc (undated last) → title → archive id |
+| Most Complete | `completion` desc → title → archive id |
+| Needs the Most Help | priority desc → completion asc → archive id |
+| A — Z | title (case-insensitive, numeric aware) → archive id |
+
+The chosen mode lives in the URL (`?sort=…`), is normalised on read (a stale
+`?sort=updated` is repaired rather than silently ignored), is pushed into history so
+Back/Forward restore the previous order, and is the *only* thing that decides the rendered
+order — the interest boost applies to the curated default alone, and an explicit sort always
+wins. Facet and sort changes keep the scroll position; only a route change scrolls to top.
 
 ## Run it
 
@@ -44,7 +63,7 @@ Other commands:
 ```bash
 npm run build      # production build into dist/
 npm run preview    # serve the production build
-npm run check:canvas  # SSR smoke render, dispatcher, panel and browser-mount tests
+npm run check:canvas  # smoke render, sorting, dispatcher, panels, mount, compliance
 ```
 
 ## The product
@@ -65,6 +84,14 @@ be linked, refreshed, or reached with back/forward without losing context.
 
 - **Shared drag context.** One `DndContext` wraps the whole app (`src/dnd/CanvasDnd.jsx`), so a
   card picked up in a side panel can be dropped on a zone anywhere — dock, panel or page.
+- **One writer.** `performDrop()` is the only place saved projects, plans, plan tasks and
+  locally published projects change. Components may open composers, close panels, and edit
+  drafts — they cannot commit. A static + live audit in `scripts/compliance-test.jsx` fails
+  the build if a component reaches around it, or if any non-grip button on any route writes
+  to storage when clicked.
+- **Mouse and touch are separate sensors.** `MouseSensor` (6px) never claims a touch, and
+  `TouchSensor` lifts a card only after a 220ms press-and-hold, so scrolling a page with a
+  thumb resting on a grip stays scrolling.
 - **Central registry.** `src/dnd/zones.js` declares every zone, what it accepts, and which card
   states are valid. `performDrop()` in `src/context/REContext.jsx` is the only place a primary
   action is committed, and it rejects anything the registry does not allow.
@@ -79,9 +106,19 @@ be linked, refreshed, or reached with back/forward without losing context.
 - **Honest feedback.** Toasts and a polite live region describe what actually happened, including
   rejected drops ("This project is already on your Revival Desk"). Invalid drops never mutate data.
 
+## The paper system
+
+`src/styles/tokens.css` adds four paper weights (ivory, warm, kraft, kraft-deep) plus an
+extremely faint CSS grain, a "lip" under each card (`::after`), and three diffused paper
+shadows. Cards use 5px radii and crisp rules; the Action Zone tray is kraft stock so
+destinations are never confused with draggable sheets. Terracotta remains the only accent:
+grips, active destinations, archive marks and destructive staging.
+
 ## What is stored locally
 
 `re:v1:saved`, `re:v1:plans`, `re:v1:projects`, `re:v1:preferences`.
+Plan status changes are stored on the plan (`status`, `statusUpdatedAt`); the plan id, its
+project link and its tasks are never rewritten by a status drop.
 
 Plans written by an older build that used `checklist` are migrated to `tasks` on read. Malformed
 or missing values fall back to safe defaults instead of breaking the app. Demo reset clears only

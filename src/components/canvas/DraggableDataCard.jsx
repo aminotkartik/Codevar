@@ -12,6 +12,7 @@ export function DraggableDataCard({
   item,
   disabled = false,
   className = '',
+  selected = false,
   children,
   gripLabel,
   disabledNote = 'Not ready to drag',
@@ -29,6 +30,7 @@ export function DraggableDataCard({
       data-dragging={isDragging}
       data-draggable={!disabled}
       data-disabled={disabled}
+      data-selected={selected ? 'true' : undefined}
     >
       <div className="data-card__handle-row">
         {disabled ? (
