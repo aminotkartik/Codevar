@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useRouter, Link } from '../app/router'
-import { useRE, PLAN_STATUSES } from '../context/REContext'
+import { useRE } from '../context/REContext'
 import { RevivalPlanCard } from '../components/revival/RevivalPlanCard'
 import { EmptyState } from '../components/ui/EmptyState'
 import { ConfirmDialog } from '../components/ui/ConfirmDialog'

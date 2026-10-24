@@ -100,6 +100,12 @@
   position: relative;
 }
 
+.specimen__photo {
+  margin-top: var(--sp-5);
+  position: relative;
+  z-index: 1;
+}
+
 .specimen__desc {
   margin-top: var(--sp-4);
   color: var(--text-muted);
@@ -218,27 +224,25 @@
   gap: var(--gap);
 }
 
-/* feature treatment */
-.shelf-feature .project-card {
-  flex: 1;
-  padding: var(--sp-6);
-}
+/* feature treatment — only above tablet, so mobile keeps the base rhythm */
+@media (min-width: 1024px) {
+  .shelf-feature .project-card {
+    flex: 1;
+    padding: var(--sp-6);
+  }
 
-.shelf-feature .glyph {
-  height: 150px;
-}
+  .shelf-feature .project-card__title {
+    font-size: 1.9rem;
+  }
 
-.shelf-feature .project-card__title {
-  font-size: 1.9rem;
-}
+  .shelf-feature .project-card__desc {
+    font-size: var(--fs-body);
+    max-width: 58ch;
+  }
 
-.shelf-feature .project-card__desc {
-  font-size: var(--fs-body);
-  max-width: 58ch;
-}
-
-.shelf-feature .project-card__index {
-  font-size: 5.5rem;
+  .shelf-feature .project-card__index {
+    font-size: 5.5rem;
+  }
 }
 
 .shelf-feature__lead {
@@ -725,6 +729,17 @@
   padding-bottom: var(--sp-6);
   border-bottom: 1px solid var(--border);
   margin-bottom: var(--sp-7);
+}
+
+.detail-cover {
+  margin-bottom: var(--sp-6);
+  border-radius: var(--r-md);
+}
+
+@media (min-width: 1024px) {
+  .detail-cover {
+    max-height: 320px;
+  }
 }
 
 .detail-head__row {
