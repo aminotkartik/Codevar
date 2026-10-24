@@ -74,8 +74,13 @@ export function StewardshipComposer() {
           onChange={setField('role')}
           placeholder="e.g. Backend development, community organising"
           aria-invalid={Boolean(touched.role && errors.role)}
+          aria-describedby={touched.role && errors.role ? 'steward-skills-error' : undefined}
         />
-        {touched.role && errors.role && <p className="prep-error">{errors.role}</p>}
+        {touched.role && errors.role && (
+          <p className="prep-error" id="steward-skills-error" role="alert">
+            {errors.role}
+          </p>
+        )}
       </div>
 
       <div className="prep-field">
@@ -90,9 +95,14 @@ export function StewardshipComposer() {
           onChange={setField('intention')}
           placeholder="What you would keep, and what you would change."
           aria-invalid={Boolean(touched.intention && errors.intention)}
+          aria-describedby={
+            touched.intention && errors.intention ? 'steward-why-error' : undefined
+          }
         />
         {touched.intention && errors.intention && (
-          <p className="prep-error">{errors.intention}</p>
+          <p className="prep-error" id="steward-why-error" role="alert">
+            {errors.intention}
+          </p>
         )}
       </div>
 
@@ -107,9 +117,14 @@ export function StewardshipComposer() {
           onChange={setField('firstTask')}
           placeholder="e.g. Ship a working shared-plot prototype"
           aria-invalid={Boolean(touched.firstTask && errors.firstTask)}
+          aria-describedby={
+            touched.firstTask && errors.firstTask ? 'steward-milestone-error' : undefined
+          }
         />
         {touched.firstTask && errors.firstTask && (
-          <p className="prep-error">{errors.firstTask}</p>
+          <p className="prep-error" id="steward-milestone-error" role="alert">
+            {errors.firstTask}
+          </p>
         )}
       </div>
 

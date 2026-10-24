@@ -104,8 +104,13 @@ export function HelpComposer() {
           onChange={setField('role')}
           placeholder="e.g. Frontend developer, service designer"
           aria-invalid={Boolean(touched.role && errors.role)}
+          aria-describedby={touched.role && errors.role ? 'help-role-error' : undefined}
         />
-        {touched.role && errors.role && <p className="prep-error">{errors.role}</p>}
+        {touched.role && errors.role && (
+          <p className="prep-error" id="help-role-error" role="alert">
+            {errors.role}
+          </p>
+        )}
       </div>
 
       <div className="prep-field">
@@ -120,9 +125,14 @@ export function HelpComposer() {
           onChange={setField('intention')}
           placeholder="A sentence or two on what you could pick up."
           aria-invalid={Boolean(touched.intention && errors.intention)}
+          aria-describedby={
+            touched.intention && errors.intention ? 'help-intention-error' : undefined
+          }
         />
         {touched.intention && errors.intention && (
-          <p className="prep-error">{errors.intention}</p>
+          <p className="prep-error" id="help-intention-error" role="alert">
+            {errors.intention}
+          </p>
         )}
       </div>
 

@@ -25,7 +25,7 @@ export function Header({ navOpen, onToggleNav, onOpenShortcuts }) {
   const handleHowItWorks = () => {
     if (navOpen) onToggleNav(false)
     if (pathname === '/') {
-      document.getElementById('how-it-works')?.scrollIntoView({
+      document.getElementById('how-it-works')?.scrollIntoView?.({
         behavior: 'smooth',
         block: 'start',
       })

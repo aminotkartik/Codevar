@@ -8,6 +8,7 @@ import {
 import { applyFilters, countByFacet } from '../../utils/projectFilters'
 import { Close } from '../ui/Icons'
 import { Portal } from '../ui/Portal'
+import { useFocusTrap } from '../../hooks/useFocusTrap'
 
 const FACETS = ['category', 'stage', 'help', 'availability']
 
@@ -96,6 +97,10 @@ export function FilterPanel({ projects, filters, onChange }) {
 /** The same panel, rendered inside a mobile drawer. */
 export function FilterDrawer({ open, onClose, projects, filters, onChange }) {
   const closeRef = useRef(null)
+  const panelRef = useRef(null)
+
+  // It declares aria-modal, so Tab must not wander into the page behind it.
+  useFocusTrap(panelRef, open)
 
   useEffect(() => {
     if (!open) return undefined
@@ -126,7 +131,13 @@ export function FilterDrawer({ open, onClose, projects, filters, onChange }) {
         style={{ position: 'absolute', inset: 0, background: 'rgba(32,35,31,.42)' }}
         onClick={onClose}
       />
-      <div className="filter-drawer__panel" role="dialog" aria-modal="true" aria-label="Filter projects">
+      <div
+        className="filter-drawer__panel"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Filter projects"
+        ref={panelRef}
+      >
         <div className="filter-drawer__head">
           <span className="section-rule" style={{ marginBottom: 0 }}>
             <span className="mono">Filters</span>

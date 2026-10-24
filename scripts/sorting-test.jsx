@@ -237,8 +237,54 @@ async function main() {
     `${dom.window.location.search} · ${select()?.value}`,
   )
 
+  /* ------------- 4. inspection that is not the first card -------------- */
+  await choose('az')
+  const cards = Array.from(dom.window.document.querySelectorAll('.project-data-card__body'))
+  const inspectedTitle = cards[2]?.querySelector('.project-data-card__title')?.textContent.trim()
+  await act(async () => {
+    // React derives onPointerEnter from a bubbling pointerover.
+    cards[2]?.dispatchEvent(new dom.window.MouseEvent('pointerover', { bubbles: true }))
+  })
+  check(
+    'a card that is not the first can be inspected',
+    dom.window.document.querySelector('.inspector__title')?.textContent.trim() === inspectedTitle,
+    `${inspectedTitle} → ${dom.window.document.querySelector('.inspector__title')?.textContent.trim()}`,
+  )
+  const inspectedLabel = dom.window.document.querySelector('.inspector__archive')?.textContent.trim()
+
+  await choose('complete')
+  check(
+    'sorting keeps the inspected project rather than jumping to the first',
+    dom.window.document.querySelector('.inspector__title')?.textContent.trim() === inspectedTitle,
+    dom.window.document.querySelector('.inspector__title')?.textContent.trim(),
+  )
+  check(
+    'the inspector does not point at a different entry after sorting',
+    dom.window.document.querySelector('.inspector__archive')?.textContent.trim() === inspectedLabel,
+  )
+
+  /* --------------------- 5. the refresh is faithful -------------------- */
+  await choose('help')
+  const beforeRefresh = renderedTitles().join('|')
+  const refreshUrl = `${dom.window.location.pathname}${dom.window.location.search}`
+  check('the refresh URL carries the sort', /sort=help/.test(refreshUrl), refreshUrl)
+
   await act(async () => {
     root.unmount()
+  })
+  const reloaded = createRoot(dom.window.document.getElementById('root'))
+  await act(async () => {
+    reloaded.render(React.createElement(App))
+  })
+  check('a reload restores the sort control', select()?.value === 'help', `${select()?.value}`)
+  check(
+    'a reload restores the same order',
+    renderedTitles().join('|') === beforeRefresh,
+    renderedTitles().slice(0, 3).join(' · '),
+  )
+
+  await act(async () => {
+    reloaded.unmount()
   })
 
   console.log(failures === 0 ? 'SORTING PASS' : `SORTING FAILURES: ${failures}`)

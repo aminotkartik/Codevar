@@ -139,7 +139,7 @@ export function useKeyboardShortcuts({ onOpenShortcuts, announce } = {}) {
         const card = cards[next]
         const target = focusableIn(card)
         target?.focus({ preventScroll: false })
-        card?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+        card?.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' })
         announce?.(`Card ${next + 1} of ${cards.length}${cardLabel(card) ? `: ${cardLabel(card)}` : ''}.`)
       }
     }
