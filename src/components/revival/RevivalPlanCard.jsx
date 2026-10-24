@@ -31,12 +31,15 @@ function StatusMark({ status }) {
  *  · Edit plan            → opens the prep panel; the edited card commits
  */
 export function RevivalPlanCard({ plan, dragId }) {
-  const { openComposer, plans } = useRE()
+  const { openComposer, plans, projectsById } = useRE()
   const livePlan = plans.find((p) => p.id === plan.id) || plan
   const tasks = livePlan.tasks || []
   const done = tasks.filter((task) => task.done).length
   const percent = tasks.length ? Math.round((done / tasks.length) * 100) : 0
   const isArchived = plan.status === 'archived'
+  // A plan can outlive its project (an older stored record, or a project
+  // discarded before plans were cleaned up). Never render a dead link.
+  const missingProject = !projectsById.has(plan.projectId)
   const item = planItem(plan, STATUS_LABELS[plan.status])
   const typeLabel = plan.type === 'stewardship' ? 'Stewardship proposal' : 'Contribution intent'
 
@@ -55,8 +58,19 @@ export function RevivalPlanCard({ plan, dragId }) {
         </div>
 
         <h3 className="plan-data-card__title">
-          <Link to={`/projects/${plan.projectSlug}`}>{plan.projectTitle}</Link>
+          {missingProject ? (
+            <span>{plan.projectTitle}</span>
+          ) : (
+            <Link to={`/projects/${plan.projectSlug}`}>{plan.projectTitle}</Link>
+          )}
         </h3>
+
+        {missingProject && (
+          <p className="plan-data-card__missing">
+            This project is no longer in your archive. The plan, its notes and its tasks are
+            kept here — drop the card into <b>Remove from desk</b> if you no longer need it.
+          </p>
+        )}
 
         <div className="plan-data-card__meta">
           <span>
@@ -118,10 +132,16 @@ export function RevivalPlanCard({ plan, dragId }) {
             A personal planning record. No owner is contacted and nothing is transferred.
           </span>
           <div className="plan-data-card__actions">
-            <Link to={`/projects/${plan.projectSlug}`} className="btn btn--sm">
-              Open project
-              <ArrowUpRight width={13} height={13} />
-            </Link>
+            {missingProject ? (
+              <span className="btn btn--sm" aria-disabled="true">
+                Project unavailable
+              </span>
+            ) : (
+              <Link to={`/projects/${plan.projectSlug}`} className="btn btn--sm">
+                Open project
+                <ArrowUpRight width={13} height={13} />
+              </Link>
+            )}
             <button
               type="button"
               className="btn btn--sm"

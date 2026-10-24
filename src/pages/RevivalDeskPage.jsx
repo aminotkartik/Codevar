@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter, Link } from '../app/router'
 import { useRE } from '../context/REContext'
 import { RevivalPlanCard } from '../components/revival/RevivalPlanCard'
@@ -24,10 +24,39 @@ export function RevivalDeskPage() {
   const { projects, plans, localProjects, saved, prefs } = useRE()
 
   // Sections are addressable so a view can be linked or revisited.
-  const [tab, setTab] = useState(() => {
-    const requested = params.get('tab')
-    return TAB_IDS.includes(requested) ? requested : 'saved'
-  })
+  const requestedTab = params.get('tab')
+  const [tab, setTab] = useState(() =>
+    TAB_IDS.includes(requestedTab) ? requestedTab : 'saved',
+  )
+  const tabRefs = useRef({})
+
+  // The URL wins: deep links, Back/Forward and hand-edited addresses all agree
+  // with the visible section instead of only the first render.
+  useEffect(() => {
+    if (TAB_IDS.includes(requestedTab) && requestedTab !== tab) setTab(requestedTab)
+  }, [requestedTab, tab])
+
+  const selectTab = (id) => {
+    if (id === tab) return
+    setTab(id)
+    // Keeping the entry count stable means Back leaves the desk rather than
+    // stepping through sections the visitor never meant to navigate.
+    navigate(`/desk?tab=${id}`, { replace: true })
+  }
+
+  const onTabKeyDown = (event) => {
+    const index = TAB_IDS.indexOf(tab)
+    let next = null
+    if (event.key === 'ArrowRight') next = (index + 1) % TAB_IDS.length
+    else if (event.key === 'ArrowLeft') next = (index - 1 + TAB_IDS.length) % TAB_IDS.length
+    else if (event.key === 'Home') next = 0
+    else if (event.key === 'End') next = TAB_IDS.length - 1
+    if (next === null) return
+    event.preventDefault()
+    const id = TAB_IDS[next]
+    selectTab(id)
+    tabRefs.current[id]?.focus()
+  }
 
   const savedProjects = useMemo(
     () => projects.filter((p) => saved.includes(p.id)),
@@ -85,27 +114,42 @@ export function RevivalDeskPage() {
                   item.id === 'saved'
                     ? savedProjects.length
                     : item.id === 'plans'
-                      ? activePlans.length
+                      ? plans.length
                       : localProjects.length
+                const selected = tab === item.id
                 return (
                   <button
                     key={item.id}
+                    ref={(node) => {
+                      tabRefs.current[item.id] = node
+                    }}
                     type="button"
                     role="tab"
+                    id={`desk-tab-${item.id}`}
                     className="tab"
-                    aria-selected={tab === item.id}
-                    onClick={() => {
-                      setTab(item.id)
-                      navigate(`/desk?tab=${item.id}`, { replace: true })
-                    }}
+                    aria-selected={selected}
+                    aria-controls={`desk-panel-${item.id}`}
+                    tabIndex={selected ? 0 : -1}
+                    onKeyDown={onTabKeyDown}
+                    onClick={() => selectTab(item.id)}
                   >
                     {item.label}
-                    <span className="tab__count">{count}</span>
+                    <span className="tab__count" aria-hidden="true">
+                      {count}
+                    </span>
+                    <span className="sr-only">{` (${count})`}</span>
                   </button>
                 )
               })}
             </div>
 
+            <div
+              id={`desk-panel-${tab}`}
+              className="desk-panel"
+              role="tabpanel"
+              aria-labelledby={`desk-tab-${tab}`}
+              tabIndex={0}
+            >
             {tab === 'saved' &&
               (savedProjects.length > 0 ? (
                 <div className="desk-list">
@@ -148,41 +192,47 @@ export function RevivalDeskPage() {
               </div>
             )}
 
-            {tab === 'plans' &&
-              (activePlans.length > 0 ? (
+            {tab === 'plans' && plans.length === 0 && (
+              <EmptyState
+                title="No revival plans yet."
+                text="Drag a project into Offer to help or Take stewardship. Prepare the intent card, then drop it into Add plan to desk."
+                action={
+                  <Link to="/explore" className="btn btn--primary">
+                    Find something to help with
+                    <ArrowUpRight width={15} height={15} />
+                  </Link>
+                }
+              />
+            )}
+
+            {tab === 'plans' && activePlans.length > 0 && (
+              <div className="desk-list">
+                {activePlans.map((plan) => (
+                  <RevivalPlanCard key={plan.id} plan={plan} dragId={`desk-plan-${plan.id}`} />
+                ))}
+              </div>
+            )}
+
+            {/* Archived plans are never hidden behind the active list: if the last
+                active plan is archived, this is the only way back. */}
+            {tab === 'plans' && archivedPlans.length > 0 && (
+              <section className="desk-archive" aria-labelledby="desk-archive-heading">
+                <div className="section-rule">
+                  <span className="mono" id="desk-archive-heading">
+                    Archived · {archivedPlans.length}
+                  </span>
+                </div>
+                <p className="desk-archive__note">
+                  Set aside, not deleted. Drag an archived plan onto{' '}
+                  <b>Working locally</b> — or any other status — to bring it back.
+                </p>
                 <div className="desk-list">
-                  {activePlans.map((plan) => (
+                  {archivedPlans.map((plan) => (
                     <RevivalPlanCard key={plan.id} plan={plan} dragId={`desk-plan-${plan.id}`} />
                   ))}
-                  {archivedPlans.length > 0 && (
-                    <div style={{ marginTop: 'var(--sp-5)' }}>
-                      <div className="section-rule">
-                        <span className="mono">Archived</span>
-                      </div>
-                      <div className="desk-list">
-                        {archivedPlans.map((plan) => (
-                          <RevivalPlanCard
-                            key={plan.id}
-                            plan={plan}
-                            dragId={`desk-plan-${plan.id}`}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  )}
                 </div>
-              ) : (
-                <EmptyState
-                  title="No revival plans yet."
-                  text="Drag a project into Offer to help or Take stewardship. Prepare the intent card, then drop it into Add plan to desk."
-                  action={
-                    <Link to="/explore" className="btn btn--primary">
-                      Find something to help with
-                      <ArrowUpRight width={15} height={15} />
-                    </Link>
-                  }
-                />
-              ))}
+              </section>
+            )}
 
             {tab === 'mine' &&
               (localProjects.length > 0 ? (
@@ -213,6 +263,7 @@ export function RevivalDeskPage() {
                   }
                 />
               ))}
+            </div>
           </div>
 
           {/* ---------------- side ---------------- */}
@@ -257,6 +308,7 @@ export function RevivalDeskPage() {
                 <li>Removing a saved project leaves the archive entry untouched.</li>
                 <li>Removing a plan never deletes its project.</li>
                 <li>Seed projects cannot be discarded from here.</li>
+                <li>Archived plans stay on this page, so you can always bring one back.</li>
               </ul>
             </div>
 

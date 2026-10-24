@@ -141,6 +141,10 @@ function auditStatic() {
     !/Add to the archive|>\s*Publish\s*</.test(submit),
   )
 
+  check('desk tabs are wired to a tabpanel', /role="tabpanel"/.test(desk) && /aria-controls=/.test(desk))
+  check('desk tabs support arrow-key navigation', /ArrowRight/.test(desk) && /ArrowLeft/.test(desk))
+  check('archived plans are never gated behind the active list', !/activePlans\.length > 0 \?/.test(desk))
+
   const dragCard = fs.readFileSync(path.join(SRC, 'components/canvas/DraggableDataCard.jsx'), 'utf8')
   check('drag handle is a semantic button', /<button[\s\S]*?className="drag-grip"/.test(dragCard))
   check('drag handle has an accessible label', /aria-label=/.test(dragCard))
@@ -266,6 +270,219 @@ async function auditLive() {
     root.unmount()
   })
   host.remove()
+
+  await auditOnboarding()
+  await auditDeskRecovery()
+}
+
+/* Onboarding is the one place a plain button may persist something — and only
+   ever preferences. This makes that exception explicit instead of assumed. */
+async function auditOnboarding() {
+  const { createRoot } = await import('react-dom/client')
+  const act = React.act
+  const { default: App } = await import('../src/app/App.jsx')
+
+  dom.window.localStorage.clear()
+  dom.window.history.replaceState({}, '', '/')
+  const host = dom.window.document.createElement('div')
+  dom.window.document.body.appendChild(host)
+  const root = createRoot(host)
+  await act(async () => {
+    root.render(React.createElement(App))
+  })
+
+  const dialog = dom.window.document.querySelector('[role="dialog"]')
+  check('a first visit is offered onboarding', Boolean(dialog))
+  const keysBefore = KEY_MAP.slice(0, 3).map((key) => dom.window.localStorage.getItem(key))
+
+  // Everything inside the onboarding panel, in order.
+  for (const button of Array.from(dialog?.querySelectorAll('button') || [])) {
+    await act(async () => {
+      button.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }))
+    })
+  }
+
+  const archiveKeys = KEY_MAP.slice(0, 3).map((key) => JSON.parse(dom.window.localStorage.getItem(key) || '[]'))
+  check(
+    'onboarding adds no archive records',
+    archiveKeys.every((value) => Array.isArray(value) && value.length === 0),
+    JSON.stringify(archiveKeys),
+  )
+  check('onboarding only writes preferences', Boolean(dom.window.localStorage.getItem('re:v1:preferences')))
+  check('onboarding is dismissed', !dom.window.document.querySelector('[role="dialog"]'))
+
+  await act(async () => {
+    root.unmount()
+  })
+  host.remove()
+  void keysBefore
+}
+
+/* The two desk traps: archived plans must stay reachable, and a discarded
+   project must not leave plans pointing at a 404. */
+async function auditDeskRecovery() {
+  const { createRoot } = await import('react-dom/client')
+  const act = React.act
+  const { default: App } = await import('../src/app/App.jsx')
+  const { REProvider, useRE } = await import('../src/context/REContext.jsx')
+
+  const plan = (id, overrides = {}) => ({
+    id,
+    projectId: 'LOCAL-1',
+    projectSlug: 'my-local-project',
+    projectTitle: 'My local project',
+    type: 'contribution',
+    collaboration: 'contributors',
+    role: 'Frontend',
+    intention: 'Help.',
+    note: 'First step',
+    createdAt: '2026-10-01T10:00:00.000Z',
+    status: 'planning',
+    tasks: [{ id: 't1', label: 'Review', done: false }],
+    ...overrides,
+  })
+
+  dom.window.localStorage.clear()
+  dom.window.localStorage.setItem(
+    're:v1:preferences',
+    JSON.stringify({ onboarded: true, categories: [], intention: '', tutorialDone: true }),
+  )
+  dom.window.localStorage.setItem('re:v1:projects', JSON.stringify([
+    { id: 'LOCAL-1', slug: 'my-local-project', title: 'My local project', local: true },
+  ]))
+  dom.window.localStorage.setItem('re:v1:plans', JSON.stringify([plan('plan-archived', { status: 'archived' })]))
+  dom.window.history.replaceState({}, '', '/desk?tab=plans')
+
+  const host = dom.window.document.createElement('div')
+  dom.window.document.body.appendChild(host)
+  const root = createRoot(host)
+  await act(async () => {
+    root.render(React.createElement(App))
+  })
+
+  check(
+    'an archived-only desk still shows the plan',
+    host.querySelectorAll('.plan-data-card').length === 1,
+    `${host.querySelectorAll('.plan-data-card').length} cards`,
+  )
+  check(
+    'an archived-only desk does not claim to be empty',
+    !/No revival plans yet/.test(host.textContent),
+  )
+  check('archived section is labelled', Boolean(host.querySelector('#desk-archive-heading')))
+  check(
+    'a plan for a live project keeps its link',
+    Boolean(host.querySelector('.plan-data-card__title a')),
+  )
+
+  // tabs follow the URL rather than only the first render
+  await act(async () => {
+    dom.window.history.replaceState({}, '', '/desk?tab=mine')
+    dom.window.dispatchEvent(new dom.window.PopStateEvent('popstate'))
+  })
+  const mineTab = host.querySelector('#desk-tab-mine')
+  check('the URL drives the active tab', mineTab?.getAttribute('aria-selected') === 'true')
+
+  await act(async () => {
+    root.unmount()
+  })
+  host.remove()
+
+  // An older or hand-edited record may be missing almost every field.
+  dom.window.localStorage.setItem('re:v1:projects', JSON.stringify([{ id: 'LOCAL-2', slug: 'sparse' }]))
+  dom.window.history.replaceState({}, '', '/desk?tab=mine')
+  const sparseHost = dom.window.document.createElement('div')
+  dom.window.document.body.appendChild(sparseHost)
+  const sparseRoot = createRoot(sparseHost)
+  let crashed = null
+  try {
+    await act(async () => {
+      sparseRoot.render(React.createElement(App))
+    })
+  } catch (error) {
+    crashed = error
+  }
+  check(
+    'a partial stored record does not crash the desk',
+    crashed === null && sparseHost.querySelectorAll('.project-data-card').length === 1,
+    crashed ? String(crashed.message) : `${sparseHost.querySelectorAll('.project-data-card').length} cards`,
+  )
+  await act(async () => {
+    sparseRoot.unmount()
+  })
+  sparseHost.remove()
+
+  // A plan can outlive its project. It must stay readable without a dead link.
+  dom.window.localStorage.setItem('re:v1:projects', JSON.stringify([]))
+  dom.window.history.replaceState({}, '', '/desk?tab=plans')
+  const orphanHost = dom.window.document.createElement('div')
+  dom.window.document.body.appendChild(orphanHost)
+  const orphanRoot = createRoot(orphanHost)
+  await act(async () => {
+    orphanRoot.render(React.createElement(App))
+  })
+  check(
+    'an orphaned plan has no dead link',
+    !orphanHost.querySelector('.plan-data-card__title a') &&
+      /no longer in your archive/.test(orphanHost.textContent),
+    orphanHost.querySelector('.plan-data-card__title a')?.getAttribute('href'),
+  )
+  check(
+    'an orphaned plan offers no broken open button',
+    !orphanHost.querySelector('.plan-data-card__actions a'),
+  )
+  await act(async () => {
+    orphanRoot.unmount()
+  })
+  orphanHost.remove()
+
+  dom.window.localStorage.setItem(
+    're:v1:projects',
+    JSON.stringify([{ id: 'LOCAL-1', slug: 'my-local-project', title: 'My local project' }]),
+  )
+
+  // ---- cascade: discarding a published project removes its plans --------
+  let ctx = null
+  function Probe() {
+    ctx = useRE()
+    return null
+  }
+  const probeHost = dom.window.document.createElement('div')
+  dom.window.document.body.appendChild(probeHost)
+  const probeRoot = createRoot(probeHost)
+  await act(async () => {
+    probeRoot.render(React.createElement(REProvider, null, React.createElement(Probe)))
+  })
+
+  let discard = null
+  await act(async () => {
+    discard = ctx.performDrop(
+      { type: 'local-project', id: 'LOCAL-1', label: 'My local project' },
+      'discard-project',
+    )
+  })
+  check('a published project can be staged for discard', discard.ok === true)
+  check(
+    'the discard warning names the plans it will take',
+    /1 revival plan/.test(ctx.pendingRemoval?.detail || ''),
+    ctx.pendingRemoval?.detail,
+  )
+  await act(async () => {
+    ctx.performDrop(
+      { type: 'pending-removal', removalToken: ctx.pendingRemoval.token, label: 'pending' },
+      'confirm-removal',
+    )
+  })
+  check(
+    'discarding a project removes its orphaned plans',
+    JSON.parse(dom.window.localStorage.getItem('re:v1:plans') || '[]').length === 0,
+  )
+  check('the project itself is gone', ctx.localProjects.length === 0)
+
+  await act(async () => {
+    probeRoot.unmount()
+  })
+  probeHost.remove()
 }
 
 /* ------------------------------------------------------------------------ */

@@ -87,8 +87,10 @@ be linked, refreshed, or reached with back/forward without losing context.
 - **One writer.** `performDrop()` is the only place saved projects, plans, plan tasks and
   locally published projects change. Components may open composers, close panels, and edit
   drafts — they cannot commit. A static + live audit in `scripts/compliance-test.jsx` fails
-  the build if a component reaches around it, or if any non-grip button on any route writes
-  to storage when clicked.
+  the build if a component reaches around it, or if any non-grip button on any route adds an
+  archive record when clicked. Onboarding is the one exception, and it is asserted rather than
+  assumed: it may only write `re:v1:preferences`, and it may only commit through the real
+  dispatcher.
 - **Mouse and touch are separate sensors.** `MouseSensor` (6px) never claims a touch, and
   `TouchSensor` lifts a card only after a 220ms press-and-hold, so scrolling a page with a
   thumb resting on a grip stays scrolling.
@@ -105,6 +107,21 @@ be linked, refreshed, or reached with back/forward without losing context.
   is why the offer-to-help composer always appears above the sticky header and everything else.
 - **Honest feedback.** Toasts and a polite live region describe what actually happened, including
   rejected drops ("This project is already on your Revival Desk"). Invalid drops never mutate data.
+
+## Records that outlive their data
+
+Two failure modes were found by mounting the app with damaged storage and are now covered by
+tests:
+
+- **A plan whose project is gone.** It stays readable, keeps its notes and tasks, and says the
+  project is no longer in the archive — no link to a 404, no "Open project" button that dead-ends.
+- **A partial record** (older schema, or hand-edited JSON). Local projects are normalised on
+  read: every field a card or the detail page touches gets a safe default, so one bad record
+  can never blank or crash a page.
+
+Discarding a project you published also removes the revival plans that pointed at it, and the
+confirmation names how many. Archiving a plan never hides it: archived plans stay in their own
+labelled section on the desk, so the last active plan can always be brought back.
 
 ## The paper system
 

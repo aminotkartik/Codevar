@@ -68,6 +68,64 @@ function normaliseTasks(raw) {
     }))
 }
 
+const PROJECT_DEFAULTS = {
+  description: '',
+  summary: '',
+  stage: 'Paused',
+  category: 'dev',
+  helpFocus: 'Development',
+  completion: 0,
+  priority: 0,
+  updatedAt: '',
+}
+
+/**
+ * Local projects are read straight from localStorage, which means they can be
+ * older than the current schema (or edited by hand). A missing field must never
+ * blank or crash a page, so every field a card or the detail page reads is
+ * given a safe default here — the stored record itself is left untouched.
+ */
+function normaliseProject(raw) {
+  const stack = asStringArray(raw.techStack)
+  const num = (value, fallback) => {
+    const parsed = Number(value)
+    return Number.isFinite(parsed) ? parsed : fallback
+  }
+  const text = (value, fallback) =>
+    typeof value === 'string' && value.trim() ? value : fallback
+
+  return {
+    ...raw,
+    title: text(raw.title, 'Untitled project'),
+    slug: raw.slug,
+    description: text(raw.description ?? raw.summary, PROJECT_DEFAULTS.description),
+    summary: text(raw.summary ?? raw.description, PROJECT_DEFAULTS.summary),
+    stage: text(raw.stage, PROJECT_DEFAULTS.stage),
+    category: text(raw.category, PROJECT_DEFAULTS.category),
+    helpFocus: text(raw.helpFocus, PROJECT_DEFAULTS.helpFocus),
+    completion: Math.min(100, Math.max(0, num(raw.completion, PROJECT_DEFAULTS.completion))),
+    priority: num(raw.priority, PROJECT_DEFAULTS.priority),
+    updatedAt: typeof raw.updatedAt === 'string' ? raw.updatedAt : PROJECT_DEFAULTS.updatedAt,
+    techStack: stack.length > 0 ? stack : ['Not specified'],
+    skillsNeeded: asStringArray(raw.skillsNeeded),
+    helpNeeded: asStringArray(raw.helpNeeded),
+    collaborationTypes: asStringArray(raw.collaborationTypes),
+    story: Array.isArray(raw.story) ? raw.story : [],
+    existingWork: Array.isArray(raw.existingWork) ? raw.existingWork : [],
+    missingWork: Array.isArray(raw.missingWork) ? raw.missingWork : [],
+    nextSteps: Array.isArray(raw.nextSteps) ? raw.nextSteps : [],
+    materials: Array.isArray(raw.materials) ? raw.materials : [],
+    fieldNotes: Array.isArray(raw.fieldNotes) ? raw.fieldNotes : [],
+    handoffChecklist: Array.isArray(raw.handoffChecklist) ? raw.handoffChecklist : [],
+    featured: Boolean(raw.featured),
+    openToStewardship: Boolean(raw.openToStewardship),
+    creator:
+      raw.creator && typeof raw.creator === 'object'
+        ? raw.creator
+        : { name: 'Anonymous', role: 'Unknown', note: '' },
+  }
+}
+
 function normalisePlan(raw) {
   const tasks = normaliseTasks(raw)
   return {
@@ -101,9 +159,9 @@ export function REProvider({ children }) {
 
   const localProjects = useMemo(
     () =>
-      asProjectsArray(localProjectsRaw).filter(
-        (p) => p && typeof p.id === 'string' && typeof p.slug === 'string',
-      ),
+      asProjectsArray(localProjectsRaw)
+        .filter((p) => p && typeof p.id === 'string' && typeof p.slug === 'string')
+        .map(normaliseProject),
     [localProjectsRaw],
   )
 
@@ -232,12 +290,15 @@ export function REProvider({ children }) {
     [projects, setLocalProjects],
   )
 
+  // Removing a project you published also removes the revival plans that point
+  // at it: a plan for a 404 is a dead link with a sob story.
   const removeLocalProject = useCallback(
     (id) => {
       setLocalProjects((prev) => asProjectsArray(prev).filter((p) => p.id !== id))
       setSaved((prev) => asStringArray(prev).filter((x) => x !== id))
+      setPlans((prev) => asPlansArray(prev).filter((p) => p.projectId !== id))
     },
-    [setLocalProjects, setSaved],
+    [setLocalProjects, setSaved, setPlans],
   )
 
   // ---- composers --------------------------------------------------------
@@ -446,13 +507,18 @@ export function REProvider({ children }) {
           if (!localProjectIds.has(item.id)) {
             return reject('Seeded archive projects cannot be discarded. Only projects you published locally can be.')
           }
+          const relatedPlans = asPlansArray(plans).filter(
+            (plan) => plan.projectId === item.id,
+          ).length
           setPendingRemoval({
             token: makeId('pending'),
             kind: 'project',
             targetId: item.id,
             label: item.label,
             detail:
-              'This locally created project will be removed from Explore and from My projects. Nothing else is touched.',
+              relatedPlans > 0
+                ? `This locally created project will be removed from Explore and from My projects, along with ${relatedPlans} revival plan${relatedPlans === 1 ? '' : 's'} for it. Saved copies of archive projects are not affected.`
+                : 'This locally created project will be removed from Explore and from My projects. Nothing else is touched.',
           })
           pushToast('Pending discard created. Drop the pending card into Confirm removal, or cancel.')
           return { ok: true, message: 'pending:discard' }

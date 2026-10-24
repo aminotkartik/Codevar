@@ -3088,3 +3088,52 @@ body[data-dragging] {
 .toast__text {
   letter-spacing: 0.005em;
 }
+
+/* ---- desk: archived plans are a first-class section -------------------- */
+.desk-panel {
+  outline: none;
+}
+
+.desk-panel:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 6px;
+  border-radius: var(--r-sm);
+}
+
+.desk-archive {
+  margin-top: var(--sp-5);
+  padding-top: var(--sp-2);
+}
+
+.desk-archive__note {
+  margin: var(--sp-2) 0 var(--sp-3);
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  max-width: 58ch;
+}
+
+.desk-archive .desk-list {
+  padding-left: var(--sp-3);
+  border-left: 2px solid var(--paper-rule);
+}
+
+/* the tab strip reads as file tabs sitting on the sheet below */
+.desk-tabs-wrap {
+  margin-bottom: var(--sp-4);
+}
+
+/* a plan whose project is gone stays readable, without a dead link */
+.plan-data-card__missing {
+  margin: var(--sp-1) 0 var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--paper-sepia);
+  background: var(--paper-warm);
+  border: 1px dashed var(--paper-rule);
+  border-radius: var(--r-sm);
+}
+
+.plan-data-card__missing b {
+  font-weight: 600;
+}
