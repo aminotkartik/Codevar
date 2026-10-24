@@ -1,11 +1,16 @@
 import { useState } from 'react'
 import { RouterProvider, useRouter, matchRoute } from './router'
 import { REProvider, useRE } from '../context/REContext'
+import { CanvasDndProvider } from '../dnd/CanvasDnd'
 import { Header } from '../components/layout/Header'
 import { MobileNav } from '../components/layout/MobileNav'
 import { Footer } from '../components/layout/Footer'
 import { ToastViewport } from '../components/ui/Toast'
-import { OnboardingDialog } from '../pages/OnboardingDialog'
+import { ActionZoneDock } from '../components/canvas/ActionZoneDock'
+import { CanvasPanels } from '../components/canvas/CanvasPanels'
+import { CanvasOnboarding } from '../components/canvas/CanvasOnboarding'
+import { ShortcutSheet } from '../components/ui/ShortcutSheet'
+import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts'
 import { HomePage } from '../pages/HomePage'
 import { ExplorePage } from '../pages/ExplorePage'
 import { ProjectPage } from '../pages/ProjectPage'
@@ -35,33 +40,55 @@ function CurrentRoute() {
 
 function Shell() {
   const { pathname } = useRouter()
+  const { liveMessage, announce } = useRE()
   const [navOpen, setNavOpen] = useState(false)
+  const [shortcutsOpen, setShortcutsOpen] = useState(false)
+  const { chordKey } = useKeyboardShortcuts({
+    onOpenShortcuts: () => setShortcutsOpen(true),
+    announce,
+  })
 
   return (
     <div className="app">
       <a className="skip-link" href="#main">
         Skip to content
       </a>
-      <Header navOpen={navOpen} onToggleNav={setNavOpen} />
+      <Header
+        navOpen={navOpen}
+        onToggleNav={setNavOpen}
+        onOpenShortcuts={() => setShortcutsOpen(true)}
+      />
       <MobileNav open={navOpen} onClose={() => setNavOpen(false)} />
       <main id="main" className="app-main" tabIndex={-1}>
         {/* keying on the path remounts the view for a clean entrance */}
         <CurrentRoute key={pathname} />
       </main>
-      <Footer />
+      <Footer onOpenShortcuts={() => setShortcutsOpen(true)} />
       <ToastViewport />
+      <ShortcutSheet open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
+      {chordKey ? (
+        <p className="chord-hint" role="status">
+          <kbd>g</kbd> then <kbd>h</kbd> home · <kbd>e</kbd> explore · <kbd>d</kbd> desk ·{' '}
+          <kbd>s</kbd> submit · <kbd>r</kbd> removed
+        </p>
+      ) : null}
+      <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+        {liveMessage ? <span key={liveMessage.id}>{liveMessage.text}</span> : null}
+      </div>
     </div>
   )
 }
 
 function App() {
-  const { prefs } = useRE()
-
   return (
     <RouterProvider>
-      <Shell />
-      {/* shown once, never blocking, and never again until reset */}
-      {!prefs.onboarded && <OnboardingDialog />}
+      {/* One shared drag context and one source of truth for every screen. */}
+      <CanvasDndProvider>
+        <Shell />
+        <ActionZoneDock />
+        <CanvasPanels />
+        <CanvasOnboarding />
+      </CanvasDndProvider>
     </RouterProvider>
   )
 }

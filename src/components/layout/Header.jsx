@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { useRouter, Link } from '../../app/router'
 import { Wordmark } from '../ui/Wordmark'
-import { Menu, Plus } from '../ui/Icons'
+import { Keyboard, Menu, Plus } from '../ui/Icons'
 
 const NAV_ITEMS = [
   { id: 'explore', to: '/explore', label: 'Explore' },
@@ -9,7 +9,7 @@ const NAV_ITEMS = [
   { id: 'desk', to: '/desk', label: 'Revival Desk' },
 ]
 
-export function Header({ navOpen, onToggleNav }) {
+export function Header({ navOpen, onToggleNav, onOpenShortcuts }) {
   const { pathname, navigate } = useRouter()
   const navButtonRef = useRef(null)
 
@@ -78,6 +78,18 @@ export function Header({ navOpen, onToggleNav }) {
           <span className="demo-badge" title="Local demo build — no data leaves this browser">
             Demo mode
           </span>
+          <button
+            type="button"
+            className="header-kbd"
+            onClick={onOpenShortcuts}
+            aria-haspopup="dialog"
+            aria-label="Keyboard shortcuts"
+            title="Keyboard shortcuts (?)"
+          >
+            <Keyboard width={16} height={16} />
+            <span className="header-kbd__label">Shortcuts</span>
+            <kbd>?</kbd>
+          </button>
           <Link to="/submit" className="btn btn--primary">
             <Plus width={15} height={15} />
             <span>Submit a project</span>

@@ -235,6 +235,16 @@ export function ArrowLeft(props) {
   )
 }
 
+/** Restore — a counter-clockwise return arrow. */
+export function Restore(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M4.5 9.5A8 8 0 1 1 4 13" />
+      <path d="M4 4.5v5h5" />
+    </svg>
+  )
+}
+
 export function FileNote(props) {
   return (
     <svg {...base} {...props}>
@@ -280,6 +290,52 @@ export function Spade(props) {
     <svg {...base} {...props}>
       <path d="M12 2.8s4.4 4.6 4.4 8.2a4.4 4.4 0 1 1-8.8 0C7.6 7.4 12 2.8 12 2.8z" />
       <path d="M12 11v10" />
+    </svg>
+  )
+}
+
+/** Six-dot drag grip — the universal "pick this up" affordance. */
+/** Keyboard — a small keypad glyph for the shortcuts affordance. */
+export function Keyboard(props) {
+  return (
+    <svg {...base} {...props}>
+      <rect x="2.5" y="6" width="19" height="12" rx="2" />
+      <path d="M6 9.5h.01M9.5 9.5h.01M13 9.5h.01M16.5 9.5h.01M6 12.8h.01M9.5 12.8h.01M13 12.8h.01M16.5 12.8h.01M8 15.6h8" />
+    </svg>
+  )
+}
+
+export function Grip(props) {
+  return (
+    <svg {...base} {...props}>
+      <circle cx="9" cy="7" r="1.15" fill="currentColor" stroke="none" />
+      <circle cx="15" cy="7" r="1.15" fill="currentColor" stroke="none" />
+      <circle cx="9" cy="12" r="1.15" fill="currentColor" stroke="none" />
+      <circle cx="15" cy="12" r="1.15" fill="currentColor" stroke="none" />
+      <circle cx="9" cy="17" r="1.15" fill="currentColor" stroke="none" />
+      <circle cx="15" cy="17" r="1.15" fill="currentColor" stroke="none" />
+    </svg>
+  )
+}
+
+/** A tray / action zone target. */
+export function Zone(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M3.5 13.5 6 5.5h12l2.5 8v5h-17z" />
+      <path d="M3.5 13.5h4.2l1.1 2.2h6.4l1.1-2.2h4.2" />
+    </svg>
+  )
+}
+
+/** A hand receiving / passing something on. */
+export function HandoffArrow(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M3 8h10" />
+      <path d="m9.5 4.5 3.5 3.5-3.5 3.5" />
+      <path d="M3 16h7.5" />
+      <path d="M17 6.5v11" />
     </svg>
   )
 }

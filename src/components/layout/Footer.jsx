@@ -2,7 +2,7 @@ import { Link } from '../../app/router'
 import { Wordmark } from '../ui/Wordmark'
 import { ArrowUpRight } from '../ui/Icons'
 
-export function Footer() {
+export function Footer({ onOpenShortcuts }) {
   return (
     <footer className="site-footer">
       <div className="container">
@@ -43,6 +43,10 @@ export function Footer() {
           <span>
             Revive ideas. Find collaborators. Build again. <span className="mono">RE—01</span>
           </span>
+          <button type="button" className="footer-kbd" onClick={onOpenShortcuts}>
+            <kbd>?</kbd>
+            Keyboard shortcuts
+          </button>
           <span>No real requests are sent. No accounts. No servers.</span>
         </div>
       </div>

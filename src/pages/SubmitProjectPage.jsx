@@ -1,8 +1,8 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter, Link } from '../app/router'
 import { useRE } from '../context/REContext'
 import { FormField, CharCounter } from '../components/forms/FormField'
-import { ProjectDossier } from '../components/forms/ProjectDossier'
+import { ProjectDraftCard } from '../components/canvas/ProjectDraftCard'
 import { ArrowUpRight, ArrowLeft, Check } from '../components/ui/Icons'
 import {
   CATEGORIES,
@@ -15,7 +15,7 @@ import {
   validateStep2,
   validateStep3,
 } from '../utils/projectValidation'
-import { nextArchiveId, slugify, uniqueSlug } from '../utils/projectIdentifiers'
+import { makeId } from '../utils/projectIdentifiers'
 import { STEPS } from '../utils/projectValidation'
 import { formatDate } from '../utils/format'
 
@@ -51,13 +51,125 @@ const EMPTY = {
   creatorName: '',
 }
 
+const FIELD_STEPS = [
+  ['title', 'Project title', 0],
+  ['description', 'Description', 0],
+  ['category', 'Category', 0],
+  ['stage', 'Current stage', 0],
+  ['built', 'What already exists', 1],
+  ['paused', 'Why the project paused', 1],
+  ['missing', 'What still needs work', 1],
+  ['nextStep', 'Smallest useful next step', 1],
+  ['resourceUrl', 'Resource link', 1],
+  ['helpNeeded', 'Help requirements', 2],
+  ['collaboration', 'Collaboration preference', 2],
+  ['stewardshipReason', 'Stewardship reason', 2],
+]
+
+/**
+ * Turn the form into a real archive project payload. The archive ID and slug
+ * are minted by the dispatcher at the moment of publication, so the draft
+ * card never claims an identifier it does not own yet.
+ */
+function buildPayload(values) {
+  const stack = values.techStack
+    .split(',')
+    .map((t) => t.trim())
+    .filter(Boolean)
+    .slice(0, 8)
+
+  const collab = values.collaboration
+  const collaborationTypes =
+    collab === 'coBuilder' ? ['contributors', 'coBuilder'] : ['contributors']
+  const today = new Date().toISOString().slice(0, 10)
+
+  return {
+    title: values.title.trim(),
+    category: values.category,
+    stage: values.stage,
+    description: values.description.trim(),
+    summary: values.description.trim(),
+    story: [
+      values.inspiration.trim()
+        ? `${values.inspiration.trim()}`
+        : `This project was submitted to RE by someone who could not finish it alone.`,
+      `${values.built.trim()}`,
+      `The work paused because ${values.paused.trim()}. What remains is described below.`,
+    ],
+    reasonPaused: values.paused.trim(),
+    existingWork: [
+      {
+        title: 'What has already been built',
+        detail: values.built.trim(),
+        status: 'Partial',
+        kind: 'prototype',
+      },
+    ],
+    missingWork: [
+      {
+        title: 'What is still missing',
+        detail: values.missing.trim(),
+        skill: values.helpNeeded[0] || 'Development',
+        difficulty: 'Medium',
+        status: 'Not started',
+      },
+    ],
+    nextSteps: [values.nextStep.trim()],
+    techStack: stack.length ? stack : ['Not specified'],
+    skillsNeeded: values.skills
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .slice(0, 8),
+    helpNeeded: values.helpNeeded.length ? values.helpNeeded : ['Development'],
+    helpFocus: values.helpNeeded[0] || 'Development',
+    collaborationTypes,
+    openToStewardship: values.openToStewardship === 'yes' || collab === 'stewardship',
+    creator: {
+      name: values.creatorName.trim() || 'Anonymous (demo submission)',
+      role: 'Submitted through the RE demo',
+      note: 'Added locally in this browser. This is not a real repository or a real person.',
+    },
+    updatedAt: today,
+    completion: STAGE_COMPLETION[values.stage] ?? 30,
+    handoffChecklist: [
+      { label: 'Project purpose documented', met: true },
+      { label: 'Current state described', met: true },
+      { label: 'Next steps identified', met: Boolean(values.nextStep.trim()) },
+      { label: 'Technical context available', met: stack.length > 0 },
+      { label: 'Known blockers recorded', met: Boolean(values.missing.trim()) },
+    ],
+    fieldNotes: [
+      {
+        date: formatDate(today),
+        text: 'Project submitted through the RE demo. Added to the local archive.',
+      },
+    ],
+    materials: values.materials.trim()
+      ? [{ label: 'Submitted notes', detail: values.materials.trim() }]
+      : [],
+    resourceUrl: values.resourceUrl.trim(),
+    inspiration: values.inspiration.trim(),
+    featured: true,
+    priority: 10,
+  }
+}
+
 export function SubmitProjectPage() {
   const { navigate } = useRouter()
-  const { projects, localProjects, addProject, pushToast } = useRE()
+  const { projects, lastPublished } = useRE()
   const [values, setValues] = useState(EMPTY)
   const [step, setStep] = useState(0)
   const [errors, setErrors] = useState({})
-  const [createdSlug, setCreatedSlug] = useState('')
+  const [publishedSlug, setPublishedSlug] = useState(null)
+  const draftId = useRef(makeId('draft')).current
+
+  // The dispatcher publishes the project; this page only reflects the result.
+  useEffect(() => {
+    if (lastPublished && lastPublished.draftId === draftId) {
+      setPublishedSlug(lastPublished.slug)
+    }
+  }, [lastPublished, draftId])
 
   const setField = (field) => (event) => {
     const value = event.target.value
@@ -65,12 +177,18 @@ export function SubmitProjectPage() {
     setErrors((prev) => ({ ...prev, [field]: undefined }))
   }
 
-  const previewValues = useMemo(
+  const allErrors = useMemo(
     () => ({
-      ...values,
-      helpFocus: values.helpNeeded[0] || '',
+      ...validateStep1(values),
+      ...validateStep2(values),
+      ...validateStep3(values),
     }),
     [values],
+  )
+  const valid = Object.keys(allErrors).length === 0
+  const payload = useMemo(() => buildPayload(values), [values])
+  const missing = FIELD_STEPS.filter(([field]) => allErrors[field]).map(
+    ([field, label, stepIndex]) => ({ field, label, step: stepIndex }),
   )
 
   const validateCurrent = () => {
@@ -92,111 +210,15 @@ export function SubmitProjectPage() {
 
   const handleBack = () => setStep(Math.max(0, step - 1))
 
-  const handleSubmit = () => {
-    const errors1 = validateStep1(values)
-    const errors2 = validateStep2(values)
-    const errors3 = validateStep3(values)
-    const all = { ...errors1, ...errors2, ...errors3 }
-    setErrors(all)
-    if (Object.keys(all).length > 0) {
-      setStep(0)
-      return
-    }
-
-    const stack = values.techStack
-      .split(',')
-      .map((t) => t.trim())
-      .filter(Boolean)
-      .slice(0, 8)
-
-    const collab = values.collaboration
-    const collaborationTypes = collab === 'coBuilder' ? ['contributors', 'coBuilder'] : ['contributors']
-
-    const today = new Date().toISOString().slice(0, 10)
-
-    const slug = uniqueSlug(slugify(values.title), projects)
-
-    const project = {
-      id: nextArchiveId(projects),
-      slug,
-      title: values.title.trim(),
-      category: values.category,
-      stage: values.stage,
-      description: values.description.trim(),
-      summary: values.description.trim(),
-      story: [
-        values.inspiration.trim()
-          ? `${values.inspiration.trim()}`
-          : `This project was submitted to RE by someone who could not finish it alone.`,
-        `${values.built.trim()}`,
-        `The work paused because ${values.paused.trim()}. What remains is described below.`,
-      ],
-      reasonPaused: values.paused.trim(),
-      existingWork: [
-        {
-          title: 'What has already been built',
-          detail: values.built.trim(),
-          status: 'Partial',
-          kind: 'prototype',
-        },
-      ],
-      missingWork: [
-        {
-          title: 'What is still missing',
-          detail: values.missing.trim(),
-          skill: values.helpNeeded[0] || 'Development',
-          difficulty: 'Medium',
-          status: 'Not started',
-        },
-      ],
-      nextSteps: [values.nextStep.trim()],
-      techStack: stack.length ? stack : ['Not specified'],
-      skillsNeeded: values.skills
-        .split(',')
-        .map((s) => s.trim())
-        .filter(Boolean)
-        .slice(0, 8),
-      helpNeeded: values.helpNeeded.length ? values.helpNeeded : ['Development'],
-      helpFocus: values.helpNeeded[0] || 'Development',
-      collaborationTypes,
-      openToStewardship: values.openToStewardship === 'yes' || collab === 'stewardship',
-      creator: {
-        name: values.creatorName.trim() || 'Anonymous (demo submission)',
-        role: 'Submitted through the RE demo',
-        note: 'Added locally in this browser. This is not a real repository or a real person.',
-      },
-      updatedAt: today,
-      completion: STAGE_COMPLETION[values.stage] ?? 30,
-      handoffChecklist: [
-        { label: 'Project purpose documented', met: true },
-        { label: 'Current state described', met: true },
-        { label: 'Next steps identified', met: Boolean(values.nextStep.trim()) },
-        { label: 'Technical context available', met: stack.length > 0 },
-        { label: 'Known blockers recorded', met: Boolean(values.missing.trim()) },
-      ],
-      fieldNotes: [
-        {
-          date: formatDate(today),
-          text: 'Project submitted through the RE demo. Added to the local archive.',
-        },
-      ],
-      materials: values.materials.trim()
-        ? [{ label: 'Submitted notes', detail: values.materials.trim() }]
-        : [],
-      resourceUrl: values.resourceUrl.trim(),
-      inspiration: values.inspiration.trim(),
-      featured: true,
-      priority: 10,
-    }
-
-    addProject(project)
-    setCreatedSlug(slug)
-    pushToast('Project added to your local archive.')
-    setStep(3)
+  const fixField = (entry) => {
+    setStep(entry.step)
+    window.requestAnimationFrame(() => {
+      document.getElementById(`f-${entry.field}`)?.focus({ preventScroll: false })
+    })
   }
 
   /* ------------------------- COMPLETION ------------------------- */
-  if (step === 3) {
+  if (publishedSlug) {
     return (
       <div className="container">
         <div className="complete">
@@ -205,16 +227,16 @@ export function SubmitProjectPage() {
           </span>
           <h1 className="complete__title">The door is open.</h1>
           <p className="complete__text">
-            “{values.title.trim()}” has been added to your local demo archive. It appears in
-            Explore, it has its own page, and it shows up under My Projects on your Revival
-            Desk. Nobody was notified and nothing was published anywhere — this is a
-            demonstration, so it stays in this browser.
+            “{values.title.trim()}” is now in the local RE demo archive. It appears in
+            Explore, it has its own page, and it shows up under My projects on your Revival
+            Desk. Nothing was sent anywhere — this is a demonstration, so it stays in this
+            browser.
           </p>
           <div className="complete__actions">
             <button
               type="button"
               className="btn btn--primary"
-              onClick={() => navigate(`/projects/${createdSlug}`)}
+              onClick={() => navigate(`/projects/${publishedSlug}`)}
             >
               View the project page
               <ArrowUpRight width={15} height={15} />
@@ -222,8 +244,17 @@ export function SubmitProjectPage() {
             <Link to="/explore" className="btn">
               See it in Explore
             </Link>
-            <button type="button" className="btn" onClick={() => { setValues(EMPTY); setStep(0); setErrors({}) }}>
-              Submit another
+            <button
+              type="button"
+              className="btn"
+              onClick={() => {
+                setValues(EMPTY)
+                setPublishedSlug(null)
+                setStep(0)
+                setErrors({})
+              }}
+            >
+              Start another draft
             </button>
           </div>
         </div>
@@ -234,12 +265,13 @@ export function SubmitProjectPage() {
   return (
     <div className="route-in">
       <div className="container">
-        <header className="page-head">
-          <span className="eyebrow">Hand it on</span>
+        <header className="page-head page-head--submit">
+          <span className="eyebrow">Hand it on · Publish by dragging</span>
           <h1 className="page-head__title">Leave the door open.</h1>
           <p className="page-head__sub">
             Tell people what you started, what exists, and where someone else could pick up the
-            work. You don&apos;t have to finish it yourself for it to be worth sharing.
+            work. Complete the three steps, then drag the live draft card into{' '}
+            <b>Publish to archive</b>.
           </p>
         </header>
 
@@ -658,23 +690,34 @@ export function SubmitProjectPage() {
                     <ArrowUpRight width={15} height={15} />
                   </button>
                 ) : (
-                  <button type="button" className="btn btn--primary" onClick={handleSubmit}>
-                    Add to the archive
-                    <Check width={15} height={15} />
-                  </button>
+                  <span className="publish-note" data-valid={valid}>
+                    {valid
+                      ? 'Ready. Drag the draft card into Publish to archive — there is no submit button.'
+                      : `${missing.length} required ${missing.length === 1 ? 'field needs' : 'fields need'} attention before this draft can be dragged.`}
+                  </span>
                 )}
               </div>
             </div>
           </form>
 
           {/* ---------------- live preview ---------------- */}
-          <aside className="submit-preview" aria-label="Live preview">
+          <aside className="submit-preview" aria-label="Live project draft card">
             <div className="section-rule">
-              <span className="mono">Live preview</span>
+              <span className="mono">Live draft · drag to publish</span>
             </div>
-            <ProjectDossier values={previewValues} />
+            <ProjectDraftCard
+              draftId={draftId}
+              payload={payload}
+              values={values}
+              valid={valid}
+              missing={missing}
+              existingProjects={projects}
+              onFix={fixField}
+            />
             <p className="preview-sticky-note" style={{ marginTop: 'var(--sp-3)' }}>
-              This panel updates as you type. On smaller screens it sits below the form.
+              The card mirrors what you have typed. It becomes draggable only when every
+              required field is valid, and it publishes nowhere but this browser. On smaller
+              screens it sits below the form.
             </p>
           </aside>
         </div>

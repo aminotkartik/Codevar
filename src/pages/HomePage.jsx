@@ -5,9 +5,8 @@ import { SectionHeading } from '../components/ui/SectionHeading'
 import { StageBadge } from '../components/ui/StageBadge'
 import { ProgressBar } from '../components/ui/ProgressBar'
 
-import { ProjectCard } from '../components/projects/ProjectCard'
+import { ProjectDataCard } from '../components/canvas/ProjectDataCard'
 import { ProjectCover } from '../components/projects/ProjectCover'
-import { BookmarkButton } from '../components/projects/BookmarkButton'
 import { CATEGORIES, categoryLabel, categoryColor } from '../data/categories'
 import { countByFacet } from '../utils/projectFilters'
 import { ArrowUpRight, Layers, Handoff, Branch } from '../components/ui/Icons'
@@ -146,11 +145,9 @@ export function HomePage() {
                       Open this entry
                       <ArrowUpRight width={15} height={15} />
                     </Link>
-                    <BookmarkButton
-                      projectId={heroProject.id}
-                      projectTitle={heroProject.title}
-                      size="sm"
-                    />
+                    <span className="specimen__drag-note">
+                      Drag a card on Explore to act on it
+                    </span>
                   </div>
                 </div>
 
@@ -179,11 +176,21 @@ export function HomePage() {
 
           <div className="shelf-grid" style={{ marginTop: 'var(--sp-7)' }}>
             <div className="shelf-feature">
-              {shelfProjects[0] && <ProjectCard project={shelfProjects[0]} variant="feature" />}
+              {shelfProjects[0] && (
+                <ProjectDataCard
+                  project={shelfProjects[0]}
+                  dragId={`shelf-${shelfProjects[0].id}`}
+                  showCover
+                />
+              )}
             </div>
             <div className="shelf-side">
               {shelfProjects.slice(1).map((project) => (
-                <ProjectCard key={project.id} project={project} />
+                <ProjectDataCard
+                  key={project.id}
+                  project={project}
+                  dragId={`shelf-${project.id}`}
+                />
               ))}
             </div>
           </div>

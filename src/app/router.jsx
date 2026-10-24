@@ -31,17 +31,22 @@ export function RouterProvider({ children }) {
   }, [sync])
 
   const navigate = useCallback(
-    (to, { replace = false } = {}) => {
+    (to, { replace = false, scroll = 'auto' } = {}) => {
       const target = to.startsWith('/') ? to : `/${to}`
       const current = `${window.location.pathname}${window.location.search}`
       if (target === current) {
         sync()
         return
       }
+      const pathChanged = target.split('?')[0] !== window.location.pathname
       if (replace) window.history.replaceState({}, '', target)
       else window.history.pushState({}, '', target)
       sync()
-      window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+      // A new route starts at the top; a filter or sort change inside a view
+      // must leave the visitor where they were.
+      if (scroll === 'always' || (scroll === 'auto' && pathChanged)) {
+        window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+      }
     },
     [sync],
   )
