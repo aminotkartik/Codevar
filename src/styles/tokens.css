@@ -18,6 +18,10 @@
   --color-dark-line: #3a4139;
   --color-dark-muted: #9aa095;
   --color-dark-paper: #30362f;
+  /* Text on dark stock. Warm paper white, 12:1 against --color-dark-surface.
+     This token was referenced in four places but never defined, so headings in
+     the dark closing section inherited near-black ink and disappeared. */
+  --color-dark-ink: #f2ecdd;
 
   /* ---- Paper stock: the material system ---------------------------------
      Four weights of paper, from the table surface up to the featured
@@ -44,6 +48,9 @@
     0 2px 3px rgba(78, 66, 44, 0.06), 0 18px 32px -20px rgba(78, 66, 44, 0.45);
   --shadow-paper-3: 0 1px 0 rgba(255, 255, 255, 0.6) inset,
     0 6px 12px rgba(78, 66, 44, 0.09), 0 34px 60px -30px rgba(78, 66, 44, 0.4);
+
+  /* Destructive/refusal text on light paper. */
+  --color-danger: #94402a;
 
   /* semantic aliases */
   --bg: var(--color-canvas);
