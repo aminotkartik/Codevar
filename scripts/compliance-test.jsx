@@ -231,6 +231,55 @@ function auditStatic() {
     !/Add to the archive|>\s*Publish\s*</.test(submit),
   )
 
+  /* Fixed-bottom surfaces must not guess the dock's height, and none of the
+     transient ones may be painted underneath it (a toast you cannot see or
+     click is not a confirmation). */
+  const canvasCss = fs.readFileSync(path.join(SRC, 'styles/canvas.css'), 'utf8')
+  const componentsCss = fs.readFileSync(path.join(SRC, 'styles/components.css'), 'utf8')
+  const blockFor = (source, selector) => {
+    const index = source.indexOf(`${selector} {`)
+    if (index === -1) return ''
+    const end = source.indexOf('}', index)
+    return source.slice(index, end)
+  }
+  const riseOf = (css, selector) => {
+    const block = blockFor(css, selector)
+    return {
+      hardcoded: /(^|\s)bottom:\s*\d+px/.test(block),
+      measured: /bottom:\s*calc\(var\(--dock-space/.test(block),
+    }
+  }
+  const dockZ = Number(blockFor(canvasCss, '.action-dock').match(/z-index:\s*(\d+)/)?.[1] || 0)
+  const toastZ = Number(blockFor(componentsCss, '.toast-region').match(/z-index:\s*(\d+)/)?.[1] || 0)
+  check('the toast sits above the dock', toastZ > dockZ, `toast ${toastZ} vs dock ${dockZ}`)
+  check(
+    'the toast clears the measured dock height',
+    riseOf(componentsCss, '.toast-region').measured,
+    blockFor(componentsCss, '.toast-region').match(/bottom:[^;]+/)?.[0],
+  )
+  // A toast pinned to the top on mobile must release the bottom offset,
+  // otherwise the region stretches between both edges of the viewport.
+  const toastBlocks = []
+  for (const source of [canvasCss, componentsCss]) {
+    const pattern = /\.toast-region\s*\{([^}]*)\}/g
+    let match
+    while ((match = pattern.exec(source)) !== null) toastBlocks.push(match[1])
+  }
+  check(
+    'top-anchored toast regions release the bottom offset',
+    toastBlocks.length > 0 && toastBlocks.every((block) => !/top:/.test(block) || /bottom:\s*auto/.test(block)),
+    toastBlocks.map((block) => block.match(/top:[^;]+|bottom:[^;]+/g)?.join(' ')).join(' | '),
+  )
+
+  for (const selector of ['.prep-panel', '.removal-panel', '.chord-hint']) {
+    const rise = riseOf(canvasCss, selector)
+    check(
+      `${selector} is positioned from the measured dock`,
+      rise.measured && !rise.hardcoded,
+      blockFor(canvasCss, selector).match(/bottom:[^;]+/)?.[0] || 'rule missing',
+    )
+  }
+
   check('desk tabs are wired to a tabpanel', /role="tabpanel"/.test(desk) && /aria-controls=/.test(desk))
   check('desk tabs support arrow-key navigation', /ArrowRight/.test(desk) && /ArrowLeft/.test(desk))
   check('archived plans are never gated behind the active list', !/activePlans\.length > 0 \?/.test(desk))

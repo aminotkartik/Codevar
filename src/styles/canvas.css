@@ -21,8 +21,10 @@ body {
 }
 
 .app {
-  /* leave room for the fixed tool tray */
-  padding-bottom: 148px;
+  /* Leave room for the fixed tool tray. --dock-space is measured by the dock
+     itself, so a taller tray (expanded, or on a phone) can never cover the end
+     of the page; 148px is the fallback before measurement. */
+  padding-bottom: calc(var(--dock-space, 136px) + 12px);
 }
 
 body[data-dragging] {
@@ -636,11 +638,12 @@ body[data-dragging] {
   flex-direction: column;
   gap: 1px;
   font-family: var(--font-mono);
-  font-size: 0.5rem;
+  /* 8px uppercase was unreadable on a phone; 10px still fits the chip row. */
+  font-size: 0.625rem;
   letter-spacing: 0.11em;
   text-transform: uppercase;
   color: var(--paper-sepia);
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 .action-dock__status-label small {
@@ -2001,7 +2004,8 @@ body[data-dragging] {
   position: fixed;
   top: calc(var(--header-h) + var(--sp-3));
   right: var(--sp-4);
-  bottom: 166px;
+  /* Sits directly on top of the measured dock, not on a fixed guess. */
+  bottom: calc(var(--dock-space, 152px) + 14px);
   z-index: 140;
   width: min(470px, calc(100vw - 32px));
   display: flex;
@@ -2226,7 +2230,8 @@ body[data-dragging] {
 .removal-panel {
   position: fixed;
   left: var(--sp-4);
-  bottom: 166px;
+  /* Sits directly on top of the measured dock, not on a fixed guess. */
+  bottom: calc(var(--dock-space, 152px) + 14px);
   z-index: 170;
   width: min(344px, calc(100vw - 32px));
   padding: var(--sp-3);
@@ -2625,7 +2630,8 @@ body[data-dragging] {
 
 @media (max-width: 760px) {
   .app {
-    padding-bottom: 132px;
+    /* the measured value does the work here too; this is only the floor */
+    padding-bottom: calc(var(--dock-space, 120px) + 12px);
   }
 
   .canvas-head {
@@ -2696,6 +2702,7 @@ body[data-dragging] {
   .action-dock__status-label {
     flex-direction: row;
     align-items: baseline;
+    flex-wrap: wrap;
     gap: 6px;
   }
 
@@ -2722,7 +2729,7 @@ body[data-dragging] {
     top: auto;
     left: 8px;
     right: 8px;
-    bottom: 96px;
+    bottom: calc(var(--dock-space, 96px) + 8px);
     width: auto;
     max-height: 56vh;
   }
@@ -2730,7 +2737,7 @@ body[data-dragging] {
   .removal-panel {
     left: 8px;
     right: 8px;
-    bottom: 96px;
+    bottom: calc(var(--dock-space, 96px) + 8px);
     width: auto;
     max-height: 44vh;
     overflow-y: auto;
@@ -2753,8 +2760,11 @@ body[data-dragging] {
     justify-content: center;
   }
 
+  /* On a short phone the tray owns the bottom of the screen, so
+     confirmations move to the top and release the bottom offset. */
   .toast-region {
     top: calc(var(--header-h) + 8px);
+    bottom: auto;
     width: calc(100vw - 24px);
   }
 
@@ -2765,8 +2775,8 @@ body[data-dragging] {
   }
 
   .task-card .drag-grip {
-    min-height: 28px;
-    padding: 3px 8px 3px 6px;
+    min-height: 34px;
+    padding: 5px 9px 5px 7px;
   }
 
   .task-card .data-card__handle-row {
@@ -2802,9 +2812,14 @@ body[data-dragging] {
   }
 
   .action-zone--chip .action-zone__label {
-    font-size: 0.5rem;
-    letter-spacing: 0.06em;
+    /* was 0.5rem (8px) — below any legible floor on a phone */
+    font-size: 0.625rem;
+    letter-spacing: 0.04em;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.15;
   }
+
 }
 
 /* ---- Reduced motion --------------------------------------------------- */
@@ -3470,7 +3485,7 @@ kbd,
 .chord-hint {
   position: fixed;
   left: 50%;
-  bottom: 200px;
+  bottom: calc(var(--dock-space, 186px) + 14px);
   transform: translateX(-50%);
   z-index: 190;
   display: flex;

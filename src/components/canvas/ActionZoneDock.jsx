@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useDndContext } from '@dnd-kit/core'
 import { useRouter, matchRoute } from '../../app/router'
 import { useRE } from '../../context/REContext'
@@ -28,9 +28,36 @@ export function ActionZoneDock() {
   const { composer, pendingRemoval, prefs, removals, saved, plans, projectsById, projectsBySlug } =
     useRE()
   const [expanded, setExpanded] = useState(false)
+  const dockRef = useRef(null)
 
-  if (!prefs.onboarded) return null
-  if (matchRoute(pathname).name === 'notfound') return null
+  const visible = Boolean(prefs.onboarded) && matchRoute(pathname).name !== 'notfound'
+
+  // The tray is fixed, so its height is exactly the amount of page it can
+  // cover. Measuring it beats hard-coding a guess: the dock grows when it is
+  // expanded or when a card is lifted, and it is taller relative to the
+  // viewport on a phone. `--dock-space` feeds the page's bottom padding.
+  useEffect(() => {
+    const root = document.documentElement
+    const node = dockRef.current
+    if (!node) {
+      root.style.removeProperty('--dock-space')
+      return undefined
+    }
+    const publish = () => {
+      const height = Math.ceil(node.getBoundingClientRect().height || node.offsetHeight || 0)
+      if (height > 0) root.style.setProperty('--dock-space', `${height}px`)
+    }
+    publish()
+    if (typeof ResizeObserver === 'undefined') return () => root.style.removeProperty('--dock-space')
+    const observer = new ResizeObserver(publish)
+    observer.observe(node)
+    return () => {
+      observer.disconnect()
+      root.style.removeProperty('--dock-space')
+    }
+  }, [visible, pathname, expanded])
+
+  if (!visible) return null
 
   const activeItem = active?.data?.current?.item || null
   const compatibleIds = activeItem ? zonesForItem(activeItem).map((zone) => zone.id) : null
@@ -65,6 +92,7 @@ export function ActionZoneDock() {
   return (
     <Portal>
       <section
+        ref={dockRef}
         className="action-dock"
         data-dragging={dragging ? 'true' : 'false'}
         data-zones={zoneIds.length}

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter, Link } from '../app/router'
 import { useRE } from '../context/REContext'
-import { FormField, CharCounter } from '../components/forms/FormField'
+import { FormField, charCounter } from '../components/forms/FormField'
 import { ProjectDraftCard } from '../components/canvas/ProjectDraftCard'
 import { ArrowUpRight, ArrowLeft, Check } from '../components/ui/Icons'
 import {
@@ -304,7 +304,7 @@ export function SubmitProjectPage() {
                     required
                     id="f-title"
                     error={errors.title}
-                    counter={CharCounter(values.title.length, 4, 70)}
+                    counter={charCounter(values.title.length, 70)}
                     hint="4–70 characters. Something a stranger would remember."
                   >
                     <input
@@ -313,7 +313,7 @@ export function SubmitProjectPage() {
                       value={values.title}
                       onChange={setField('title')}
                       placeholder="e.g. Orchard Ledger"
-                      maxLength={90}
+                      maxLength={70}
                     />
                   </FormField>
 
@@ -344,7 +344,7 @@ export function SubmitProjectPage() {
                     required
                     id="f-description"
                     error={errors.description}
-                    counter={CharCounter(values.description.length, 30, 240)}
+                    counter={charCounter(values.description.length, 240)}
                     hint="30–240 characters. What is it, and what state is it in?"
                   >
                     <textarea
@@ -353,6 +353,7 @@ export function SubmitProjectPage() {
                       style={{ minHeight: 96 }}
                       value={values.description}
                       onChange={setField('description')}
+                      maxLength={240}
                       placeholder="A working prototype of a neighbourhood garden planner, paused before the shared planning features were built."
                     />
                   </FormField>
@@ -675,7 +676,8 @@ export function SubmitProjectPage() {
             {/* ---------------- footer ---------------- */}
             <div className="step-foot">
               <span className="step-foot__note">
-                Step {step + 1} of 3. Your browser stores the result — nothing is sent.
+                Step {step + 1} of 3. Nothing is sent anywhere, and nothing is stored until
+                you publish — refreshing this page clears the form.
               </span>
               <div style={{ display: 'flex', gap: 'var(--sp-3)' }}>
                 {step > 0 && (

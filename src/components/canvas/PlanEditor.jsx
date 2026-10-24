@@ -67,8 +67,10 @@ export function PlanEditor() {
       }
     >
       <div className="prep-field">
-        <span className="field__label">Involvement</span>
-        <div className="prep-options">
+        <span className="field__label" id="plan-involvement-label">
+          Involvement
+        </span>
+        <div className="prep-options" role="radiogroup" aria-labelledby="plan-involvement-label">
           {COLLABORATION_OPTIONS.map((option) => (
             <label
               className="choice"
@@ -101,8 +103,14 @@ export function PlanEditor() {
           className="input"
           value={values.role}
           onChange={setField('role')}
+          aria-invalid={Boolean(errors.role)}
+          aria-describedby={errors.role ? 'plan-role-error' : undefined}
         />
-        {errors.role && <p className="prep-error">{errors.role}</p>}
+        {errors.role && (
+          <p className="prep-error" id="plan-role-error" role="alert">
+            {errors.role}
+          </p>
+        )}
       </div>
 
       <div className="prep-field">
@@ -115,8 +123,14 @@ export function PlanEditor() {
           style={{ minHeight: 92 }}
           value={values.intention}
           onChange={setField('intention')}
+          aria-invalid={Boolean(errors.intention)}
+          aria-describedby={errors.intention ? 'plan-intention-error' : undefined}
         />
-        {errors.intention && <p className="prep-error">{errors.intention}</p>}
+        {errors.intention && (
+          <p className="prep-error" id="plan-intention-error" role="alert">
+            {errors.intention}
+          </p>
+        )}
       </div>
 
       <div className="prep-field">

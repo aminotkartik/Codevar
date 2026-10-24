@@ -64,7 +64,8 @@ Other commands:
 ```bash
 npm run build      # production build into dist/
 npm run preview    # serve the production build
-npm run check:canvas  # smoke, sorting, dispatcher, restore, keyboard, pointer, panels, mount, compliance
+npm run check:canvas  # ten suites: smoke, sorting, dispatcher, restore, keyboard,
+                      # pointer, panels, mount, compliance, end-to-end flows, console
 ```
 
 ## The product

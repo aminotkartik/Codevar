@@ -49,7 +49,7 @@ export function HomePage() {
     if (pathname !== '/') return
     if (!window.location.hash.includes('how-it-works')) return
     const target = document.getElementById('how-it-works')
-    if (target) window.setTimeout(() => target.scrollIntoView({ behavior: 'smooth', block: 'start' }), 120)
+    if (target) window.setTimeout(() => target.scrollIntoView?.({ behavior: 'smooth', block: 'start' }), 120)
   }, [pathname])
 
   return (

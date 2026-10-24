@@ -415,8 +415,25 @@
     letter-spacing: 0.06em;
   }
 
+  /* The three step labels are long enough to overflow a 320px screen:
+     let them wrap onto a second line and drop the hairlines between them. */
+  .stepper {
+    flex-wrap: wrap;
+    row-gap: var(--sp-2);
+  }
+
+  .stepper__sep {
+    display: none;
+  }
+
   .stepper__item {
     font-size: 0.6rem;
+    flex: 1 1 auto;
+    justify-content: center;
+    min-width: 0;
+    white-space: normal;
+    text-align: center;
+    overflow-wrap: anywhere;
   }
 
   .modal-overlay {
@@ -521,17 +538,35 @@
     -webkit-tap-highlight-color: transparent;
   }
 
-  /* Titles and descriptions must wrap rather than overflow */
-  .project-card__title,
-  .project-card__desc,
-  .dossier__title,
+  /* Titles and descriptions must wrap rather than overflow. These are the
+     current component classes; the older .project-card/.plan-card/.dossier
+     names below are kept only for the legacy shelf markup. */
+  .project-data-card__title,
+  .project-data-card__desc,
+  .plan-data-card__title,
+  .receipt-card__title,
+  .receipt-card__what,
   .detail-head__title,
   .detail-head__summary,
   .story-block__note,
-  .plan-card__title,
-  .plan-card__intention,
+  .inspector__title,
+  .inspector__summary,
   .note-item__text,
-  .modal__title {
+  .modal__title,
+  .project-card__title,
+  .project-card__desc,
+  .dossier__title,
+  .plan-card__title,
+  .plan-card__intention {
+    overflow-wrap: anywhere;
+  }
+
+  /* Tech-stack tags are user-entered and can be a single long word: never let
+     one push the card wider than the screen. */
+  .project-data-card__tags .tag,
+  .tag {
+    max-width: 100%;
+    white-space: normal;
     overflow-wrap: anywhere;
   }
 
@@ -547,10 +582,13 @@
     min-height: 44px;
   }
 
-  .project-card__title,
-  .dossier__title,
+  .project-data-card__title,
+  .plan-data-card__title,
+  .receipt-card__title,
   .detail-head__title,
-  .plan-card__title {
+  .inspector__title,
+  .project-card__title,
+  .dossier__title {
     overflow-wrap: anywhere;
   }
 }
