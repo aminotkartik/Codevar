@@ -1,0 +1,97 @@
+/* ==========================================================================
+   RE — CODE VARIANT 01
+   tokens.css — the single source of truth for colour, type, space & motion
+   ========================================================================== */
+
+:root {
+  /* ---- Colour: warm architectural neutrals + one strong accent ----------- */
+  --color-canvas: #f5f3ed;
+  --color-paper: #fffefa;
+  --color-ink: #20231f;
+  --color-muted: #62675e;
+  --color-subtle: #eae7de;
+  --color-line: #d8d6cc;
+  --color-accent: #a93f28;
+  --color-accent-soft: #f5e4dc;
+  --color-accent-line: #e2c6ba;
+  --color-dark-surface: #272c27;
+  --color-dark-line: #3a4139;
+  --color-dark-muted: #9aa095;
+  --color-dark-paper: #30362f;
+
+  /* semantic aliases */
+  --bg: var(--color-canvas);
+  --surface: var(--color-paper);
+  --text: var(--color-ink);
+  --text-muted: var(--color-muted);
+  --border: var(--color-line);
+
+  /* category tonal markers — muted, never saturated */
+  --cat-dev: #6b7a5e;
+  --cat-design: #a93f28;
+  --cat-civic: #4f6f7a;
+  --cat-sustain: #7d8a4a;
+  --cat-edu: #8a6b4a;
+  --cat-research: #5b6377;
+  --cat-games: #7a5a6b;
+
+  /* ---- Typography ------------------------------------------------------- */
+  --font-display: 'Iowan Old Style', 'Palatino Linotype', 'URW Palladio L',
+    P052, Palatino, 'Book Antiqua', Georgia, 'Liberation Serif', serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas,
+    'Liberation Mono', monospace;
+
+  /* ---- Type scale ------------------------------------------------------ */
+  --fs-hero: clamp(2.65rem, 1.5rem + 4.6vw, 4.9rem);
+  --fs-display: clamp(2.1rem, 1.5rem + 2.6vw, 3.1rem);
+  --fs-h2: clamp(1.7rem, 1.25rem + 1.6vw, 2.4rem);
+  --fs-h3: 1.4rem;
+  --fs-h4: 1.0625rem;
+  --fs-body: 1rem;
+  --fs-small: 0.8125rem;
+  --fs-micro: 0.6875rem;
+
+  --lh-tight: 1.08;
+  --lh-snug: 1.28;
+  --lh-body: 1.6;
+
+  --tracking-tight: -0.022em;
+  --tracking-display: -0.03em;
+  --tracking-label: 0.13em;
+
+  /* ---- Spacing scale: 4 8 12 16 24 32 48 64 96 ------------------------- */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  --sp-7: 48px;
+  --sp-8: 64px;
+  --sp-9: 96px;
+
+  /* ---- Grid ------------------------------------------------------------ */
+  --maxw: 1440px;
+  --gutter: clamp(20px, 4vw, 72px);
+  --gap: 24px;
+  --header-h: 68px;
+
+  /* ---- Radius & elevation ---------------------------------------------- */
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 14px;
+
+  --shadow-1: 0 1px 2px rgba(32, 35, 31, 0.05);
+  --shadow-2: 0 2px 5px rgba(32, 35, 31, 0.05), 0 14px 30px rgba(32, 35, 31, 0.06);
+  --shadow-3: 0 4px 10px rgba(32, 35, 31, 0.07), 0 28px 56px rgba(32, 35, 31, 0.1);
+
+  /* ---- Motion: fast, deliberate, tactile ------------------------------- */
+  --t-fast: 130ms;
+  --t-base: 200ms;
+  --t-slow: 260ms;
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-emphasis: cubic-bezier(0.34, 1.2, 0.5, 1);
+}
